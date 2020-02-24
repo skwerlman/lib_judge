@@ -25,5 +25,8 @@ lib_judge-*.tar
 # Ignore VSCode artifacts
 /.elixir_ls
 
+# Ignore ZSH artifacts
+.mix_tasks
+
 # Ignore copyrighted data we don't own (like the official rules text)
 /priv/data
