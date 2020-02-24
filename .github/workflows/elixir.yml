@@ -159,7 +159,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build-test
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
