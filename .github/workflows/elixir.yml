@@ -135,7 +135,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache PLTs
-      id: cache-build
+      id: cache-plt
       uses: actions/cache@v1
       with:
         path: _build/dev
