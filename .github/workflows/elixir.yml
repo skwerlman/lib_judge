@@ -16,11 +16,35 @@ jobs:
         otp-version: 22.2.7 # Define the OTP version [required]
     - name: Install Dependencies
       run: mix deps.get
+    - name: Compile Dependencies
+      run: mix deps.compile
+    - name: Compile LibJudge
+      run: mix compile --warnings-as-errors --all-warnings
+  formatting:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v2
     - name: Check Formatting
       run: mix format --check-formatted
+  credo:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v2
     - name: Lint
       run: mix credo --strict
+  dialyzer:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v2
     - name: Run Static Analysis
       run: mix dialyzer --halt-exit-status
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v2
     - name: Run Tests
       run: mix test
