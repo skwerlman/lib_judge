@@ -48,7 +48,7 @@ jobs:
       if: steps.cache-build-test.outputs.cache-hit != 'true'
       run: mix deps.compile
       env:
-        MIX_ENV=test
+        MIX_ENV: test
     - name: Compile LibJudge
       run: mix compile --force --warnings-as-errors --all-warnings
 
