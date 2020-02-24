@@ -19,7 +19,15 @@ jobs:
       uses: actions/cache@v1
       with:
         path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
+        restore-keys: |
+          ${{ runner.os }}-mix-
+    - name: Cache Test Build
+      id: cache-build-test
+      uses: actions/cache@v1
+      with:
+        path: _build
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build-test
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -27,7 +35,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Install Dependencies
@@ -36,6 +44,11 @@ jobs:
     - name: Compile Dependencies
       if: steps.cache-build.outputs.cache-hit != 'true'
       run: mix deps.compile
+    - name: Compile Test Dependencies
+      if: steps.cache-build-test.outputs.cache-hit != 'true'
+      run: mix deps.compile
+      env:
+        MIX_ENV=test
     - name: Compile LibJudge
       run: mix compile --force --warnings-as-errors --all-warnings
 
@@ -54,7 +67,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -62,7 +75,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Check Formatting
@@ -82,7 +95,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -90,7 +103,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Lint
@@ -110,7 +123,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -118,7 +131,15 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
+        restore-keys: |
+          ${{ runner.os }}-mix-
+    - name: Cache PLTs
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: _build/dev
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-plt
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Run Static Analysis
@@ -138,7 +159,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -146,7 +167,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Run Tests
