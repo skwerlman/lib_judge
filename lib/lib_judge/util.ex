@@ -1,4 +1,9 @@
 defmodule LibJudge.Util do
+  @moduledoc """
+  A collection of utilities used inside lib_judge
+  """
+
+  @doc "Maps a month or number string into a number"
   @spec date_map(binary) :: integer
   def date_map("January"), do: 1
   def date_map("February"), do: 2

@@ -50,7 +50,7 @@ defmodule LibJudge.Tokenizer do
 
   defp tokenize(<<"Contents", rest_with_contents::binary>>, tokens) do
     [contents_string, rest] = take_until(rest_with_contents, "1. Game Concepts\n\n")
-    contents = tokenize(contents_string |> String.trim("\n"))
+    contents = tokenize(String.trim(contents_string, "\n"))
     tokenize(rest, [{:contents, contents} | tokens])
   end
 
@@ -79,19 +79,12 @@ defmodule LibJudge.Tokenizer do
 
   # rules like: 100.1. <body>
   defp tokenize(
-         <<cat::utf8, subcat::binary-size(2), ".", rule::utf8, ". ", rest_with_body::binary>>,
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), ". ",
+           rest_with_body::binary>>,
          tokens
        )
-       when cat in 48..57 and rule in 48..57 do
-    [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
-    {body, rest_with_examples} = continue(body_part, rest_with_continuation)
-    {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule>> <> "."
-
-    tokenize(rest, [
-      {:rule, {:rule, rule, body, examples}}
-      | tokens
-    ])
+       when cat in 48..57 do
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
   end
 
   # rules like: 100.10. <body>
@@ -101,15 +94,7 @@ defmodule LibJudge.Tokenizer do
          tokens
        )
        when cat in 48..57 do
-    [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
-    {body, rest_with_examples} = continue(body_part, rest_with_continuation)
-    {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule::binary>> <> "."
-
-    tokenize(rest, [
-      {:rule, {:rule, rule, body, examples}}
-      | tokens
-    ])
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
   end
 
   # rules like: 100.100. <body>
@@ -119,33 +104,17 @@ defmodule LibJudge.Tokenizer do
          tokens
        )
        when cat in 48..57 do
-    [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
-    {body, rest_with_examples} = continue(body_part, rest_with_continuation)
-    {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule::binary>> <> "."
-
-    tokenize(rest, [
-      {:rule, {:rule, rule, body, examples}}
-      | tokens
-    ])
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
   end
 
   # rules like: 100.1a <body>
   defp tokenize(
-         <<cat::utf8, subcat::binary-size(2), ".", rule::utf8, subrule::utf8, " ",
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), subrule::utf8, " ",
            rest_with_body::binary>>,
          tokens
        )
-       when cat in 48..57 and rule in 48..57 and subrule in 97..122 do
-    [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
-    {body, rest_with_examples} = continue(body_part, rest_with_continuation)
-    {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule>> <> <<subrule>>
-
-    tokenize(rest, [
-      {:rule, {:subrule, rule, body, examples}}
-      | tokens
-    ])
+       when cat in 48..57 and subrule in 97..122 do
+    subrule_tokenize(cat, subcat, rule, subrule, rest_with_body, tokens)
   end
 
   # rules like: 100.10a <body>
@@ -155,15 +124,7 @@ defmodule LibJudge.Tokenizer do
          tokens
        )
        when cat in 48..57 and subrule in 97..122 do
-    [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
-    {body, rest_with_examples} = continue(body_part, rest_with_continuation)
-    {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule::binary>> <> <<subrule>>
-
-    tokenize(rest, [
-      {:rule, {:subrule, rule, body, examples}}
-      | tokens
-    ])
+    subrule_tokenize(cat, subcat, rule, subrule, rest_with_body, tokens)
   end
 
   # rules like: 100.100a <body>
@@ -173,15 +134,7 @@ defmodule LibJudge.Tokenizer do
          tokens
        )
        when cat in 48..57 and subrule in 97..122 do
-    [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
-    {body, rest_with_examples} = continue(body_part, rest_with_continuation)
-    {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule::binary>> <> <<subrule>>
-
-    tokenize(rest, [
-      {:rule, {:subrule, rule, body, examples}}
-      | tokens
-    ])
+    subrule_tokenize(cat, subcat, rule, subrule, rest_with_body, tokens)
   end
 
   # strip leading newlines
@@ -194,6 +147,30 @@ defmodule LibJudge.Tokenizer do
     IO.puts(inspect(String.slice(string, 0..9)))
     IO.puts(inspect(hd))
     tokens
+  end
+
+  defp rule_tokenize(cat, subcat, rule, rest_with_body, tokens) do
+    [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
+    {body, rest_with_examples} = continue(body_part, rest_with_continuation)
+    {examples, rest} = take_examples(rest_with_examples)
+    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule::binary>> <> "."
+
+    tokenize(rest, [
+      {:rule, {:rule, rule, body, examples}}
+      | tokens
+    ])
+  end
+
+  defp subrule_tokenize(cat, subcat, rule, subrule, rest_with_body, tokens) do
+    [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
+    {body, rest_with_examples} = continue(body_part, rest_with_continuation)
+    {examples, rest} = take_examples(rest_with_examples)
+    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule::binary>> <> <<subrule>>
+
+    tokenize(rest, [
+      {:rule, {:subrule, rule, body, examples}}
+      | tokens
+    ])
   end
 
   defp take_until(string, marker) do
