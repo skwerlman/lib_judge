@@ -2,6 +2,7 @@ defmodule LibJudge.Tokenizer do
   @moduledoc """
   Tokenizer for the MTG Comprehensive Rules
   """
+  alias LibJudge.Rule
   alias LibJudge.Util
 
   @type title :: {:title, String.t()}
@@ -10,15 +11,25 @@ defmodule LibJudge.Tokenizer do
   @type contents :: {:contents, [rule | String.t()]}
   @type rule ::
           {:rule,
-           {type :: :category | :subcategory | :rule | :subrule, name :: String.t(),
-            body :: String.t(), examples :: [String.t()]}}
+           {type :: Rule.rule_type(), rule :: Rule.t(), body :: String.t(),
+            examples :: [String.t()]}}
   @type glossary :: {:glossary, [glossary_item]}
   @type glossary_item :: {name :: String.t(), definition :: String.t()}
-  @type token :: title | effective_date | intro | contents | rule | glossary
+  @type token ::
+          title
+          | effective_date
+          | intro
+          | contents
+          | rule
+          | glossary
 
   @spec tokenize(binary) :: [token]
+  # ignore BOMs
+  def tokenize(<<"\uFEFF", rest::binary>>), do: tokenize(rest)
+
   def tokenize(string) when is_binary(string) do
     string
+    |> String.replace("\r\n", "\n")
     |> tokenize([])
     |> Enum.reverse()
   end
@@ -56,9 +67,7 @@ defmodule LibJudge.Tokenizer do
 
   # rules like: 1. <body>
   defp tokenize(<<cat::utf8, ". ", rest_with_body::binary>>, tokens) when cat in 48..57 do
-    [body, rest] = String.split(rest_with_body, "\n", parts: 2)
-    rule = <<cat>> <> "."
-    tokenize(rest, [{:rule, {:category, rule, body, []}} | tokens])
+    category_tokenize(cat, rest_with_body, tokens)
   end
 
   # rules like: 100. <body>
@@ -67,14 +76,7 @@ defmodule LibJudge.Tokenizer do
          tokens
        )
        when cat in 48..57 do
-    [body, rest_with_examples] = String.split(rest_with_body, "\n", parts: 2)
-    {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "."
-
-    tokenize(rest, [
-      {:rule, {:subcategory, rule, body, examples}}
-      | tokens
-    ])
+    subcategory_tokenize(cat, subcat, rest_with_body, tokens)
   end
 
   # rules like: 100.1. <body>
@@ -149,11 +151,44 @@ defmodule LibJudge.Tokenizer do
     tokens
   end
 
+  defp category_tokenize(cat, rest_with_body, tokens) do
+    [body, rest] = String.split(rest_with_body, "\n", parts: 2)
+
+    rule = %Rule{
+      category: <<cat>>,
+      type: :rule
+    }
+
+    tokenize(rest, [{:rule, {:category, rule, body, []}} | tokens])
+  end
+
+  defp subcategory_tokenize(cat, subcat, rest_with_body, tokens) do
+    [body, rest_with_examples] = String.split(rest_with_body, "\n", parts: 2)
+    {examples, rest} = take_examples(rest_with_examples)
+
+    rule = %Rule{
+      category: <<cat>>,
+      subcategory: subcat,
+      type: :rule
+    }
+
+    tokenize(rest, [
+      {:rule, {:subcategory, rule, body, examples}}
+      | tokens
+    ])
+  end
+
   defp rule_tokenize(cat, subcat, rule, rest_with_body, tokens) do
     [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
     {body, rest_with_examples} = continue(body_part, rest_with_continuation)
     {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule::binary>> <> "."
+
+    rule = %Rule{
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      type: :rule
+    }
 
     tokenize(rest, [
       {:rule, {:rule, rule, body, examples}}
@@ -165,7 +200,14 @@ defmodule LibJudge.Tokenizer do
     [body_part, rest_with_continuation] = String.split(rest_with_body, "\n", parts: 2)
     {body, rest_with_examples} = continue(body_part, rest_with_continuation)
     {examples, rest} = take_examples(rest_with_examples)
-    rule = <<cat>> <> <<subcat::binary>> <> "." <> <<rule::binary>> <> <<subrule>>
+
+    rule = %Rule{
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      subrule: <<subrule>>,
+      type: :rule
+    }
 
     tokenize(rest, [
       {:rule, {:subrule, rule, body, examples}}
@@ -192,8 +234,10 @@ defmodule LibJudge.Tokenizer do
   defp take_examples(ex, bin), do: {ex, bin}
 
   defp continue(rule, next) do
-    {cont, rest} = take_continuation(next)
-    {rule <> cont, rest}
+    case take_continuation(next) do
+      {"", rest} -> {rule, rest}
+      {cont, rest} -> {"#{rule}\n#{cont}", rest}
+    end
   end
 
   defp take_continuation(bin), do: take_continuation([], bin)
@@ -204,11 +248,15 @@ defmodule LibJudge.Tokenizer do
   end
 
   defp take_continuation(cont, bin) do
-    continuation =
-      cont
-      |> Enum.reverse()
-      |> Enum.join("\n")
+    continuation = reverse_join(cont, "\n")
 
     {continuation, bin}
   end
+
+  defp reverse_join(list, join) do
+    reverse_join(list, join, "")
+  end
+
+  defp reverse_join([], _join, acc), do: acc
+  defp reverse_join([this | rest], join, acc), do: reverse_join(rest, join, this <> join <> acc)
 end

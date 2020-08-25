@@ -4,7 +4,7 @@ defmodule LibJudge.Versions do
   """
 
   @spec get(version :: String.t()) :: String.t()
-  def get("20200122") do
-    File.read!("priv/data/MagicCompRules 20200122.txt")
+  def get(ver) do
+    File.read!("priv/data/MagicCompRules " <> ver <> ".txt")
   end
 end

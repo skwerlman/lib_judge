@@ -2,8 +2,8 @@ defmodule ArchiveChallenges.MixProject do
   @moduledoc false
   use Mix.Project
 
-  @version "0.0.1"
-  @repo "https://github.com/skwerlman/archive_challenges"
+  @version "0.1.0"
+  @repo "https://github.com/skwerlman/lib_judge"
 
   def project do
     [
@@ -19,16 +19,17 @@ defmodule ArchiveChallenges.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {LibJudge, []}
     ]
   end
 
   defp deps do
     [
-      {:stream_data, "~> 0.4", only: :test},
-      {:credo, "~> 1.2", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~>1.0.0-rc.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false}
+      {:stream_data, "~> 0.5", only: :test},
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false}
     ]
   end
 
