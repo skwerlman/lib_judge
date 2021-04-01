@@ -26,6 +26,7 @@ defmodule ArchiveChallenges.MixProject do
 
   defp deps do
     [
+      {:finch, "~> 0.6"},
       {:floki, "~> 0.30"},
       {:stream_data, "~> 0.5", only: :test},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},

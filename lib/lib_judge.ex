@@ -3,10 +3,14 @@ defmodule LibJudge do
   Documentation for `LibJudge`.
   """
   use Application
+  alias LibJudge.Tokenizer
+  alias LibJudge.Versions
 
-  defdelegate get(version), to: LibJudge.Versions
+  @spec get!(:current | binary, boolean) :: binary
+  defdelegate get!(version, allow_online \\ true), to: Versions
 
-  defdelegate tokenize(text), to: LibJudge.Tokenizer
+  @spec tokenize(binary) :: [Tokenizer.token()]
+  defdelegate tokenize(text), to: Tokenizer
 
   @spec start(any, any) :: {:error, any} | {:ok, pid}
   def start(_type, _args) do
@@ -14,7 +18,10 @@ defmodule LibJudge do
       strategy: :one_for_one
     ]
 
-    children = []
+    children = [
+      {Finch, name: LibJudge.HTTPClient}
+    ]
+
     Supervisor.start_link(children, opts)
   end
 end
