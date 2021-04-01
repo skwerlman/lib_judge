@@ -156,7 +156,7 @@ defmodule LibJudge.Tokenizer do
 
     rule = %Rule{
       category: <<cat>>,
-      type: :rule
+      type: :category
     }
 
     tokenize(rest, [{:rule, {:category, rule, body, []}} | tokens])
@@ -169,7 +169,7 @@ defmodule LibJudge.Tokenizer do
     rule = %Rule{
       category: <<cat>>,
       subcategory: subcat,
-      type: :rule
+      type: :subcategory
     }
 
     tokenize(rest, [
@@ -206,7 +206,7 @@ defmodule LibJudge.Tokenizer do
       subcategory: subcat,
       rule: rule,
       subrule: <<subrule>>,
-      type: :rule
+      type: :subrule
     }
 
     tokenize(rest, [
