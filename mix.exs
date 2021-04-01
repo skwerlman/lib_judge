@@ -2,7 +2,7 @@ defmodule ArchiveChallenges.MixProject do
   @moduledoc false
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @repo "https://github.com/skwerlman/lib_judge"
 
   def project do
