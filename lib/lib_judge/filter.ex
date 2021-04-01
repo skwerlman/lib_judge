@@ -22,6 +22,8 @@ defmodule LibJudge.Filter do
       _ ->
         false
     end
+  rescue
+    _ -> fn _ -> false end
   end
 
   @spec rule_starts_with(String.t()) :: filter
