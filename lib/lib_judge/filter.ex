@@ -11,6 +11,19 @@ defmodule LibJudge.Filter do
 
   @type filter :: (Tokenizer.rule() -> boolean)
 
+  @spec rule_is(String.t()) :: (Tokenizer.rule() -> boolean)
+  def rule_is(rule_str) do
+    rule = Rule.from_string(rule_str)
+
+    fn
+      {:rule, {_type, ^rule, _body, _examples}} ->
+        true
+
+      _ ->
+        false
+    end
+  end
+
   @spec rule_starts_with(String.t()) :: filter
   def rule_starts_with(prefix) do
     fn
@@ -29,6 +42,14 @@ defmodule LibJudge.Filter do
   def rule_type(type) do
     fn
       {:rule, {^type, %Rule{type: ^type}, _body, _examples}} -> true
+      _ -> false
+    end
+  end
+
+  @spec body_contains(String.t()) :: filter
+  def body_contains(text) do
+    fn
+      {:rule, {_type, _rule, body, _examples}} -> String.contains?(body, text)
       _ -> false
     end
   end
@@ -65,6 +86,20 @@ defmodule LibJudge.Filter do
 
       _ ->
         false
+    end
+  end
+
+  @spec either(filter, filter) :: filter
+  def either(filter1, filter2) do
+    fn x ->
+      filter1.(x) or filter2.(x)
+    end
+  end
+
+  @spec both(filter, filter) :: filter
+  def both(filter1, filter2) do
+    fn x ->
+      filter1.(x) and filter2.(x)
     end
   end
 end
