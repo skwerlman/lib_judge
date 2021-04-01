@@ -5,7 +5,6 @@ defmodule LibJudge.Filter do
   Each filter returns a single-argument function designed to be
   used with `Enum.filter/2`
   """
-  alias __MODULE__
   alias LibJudge.Rule
   alias LibJudge.Tokenizer
   require Logger
