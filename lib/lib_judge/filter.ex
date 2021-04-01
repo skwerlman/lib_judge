@@ -1,102 +1,71 @@
 defmodule LibJudge.Filter do
   @moduledoc """
-  TODO
+  A collection of filters to do common searches on rules.
+
+  Each filter returns a single-argument function designed to be
+  used with `Enum.filter/2`
   """
   alias __MODULE__
   alias LibJudge.Rule
+  alias LibJudge.Tokenizer
+  require Logger
 
-  @doc false
-  defmacro regex_case(string, do: lines) do
-    new_lines =
-      Enum.map(lines, fn {:->, context, [[regex], result]} ->
-        condition = quote do: String.match?(unquote(string), unquote(regex))
-        {:->, context, [[condition], result]}
-      end)
+  @spec rule_starts_with(binary) :: (Tokenizer.rule() -> boolean)
+  def rule_starts_with(prefix) do
+    fn
+      {:rule, {_, rule, _, _}} ->
+        rule
+        |> Rule.to_string()
+        |> case do
+          {:ok, string} -> String.starts_with?(string, prefix)
+          _ -> false
+        end
 
-    # Base case if nothing matches; "cond" complains otherwise.
-    base_case = quote do: (true -> false)
-    lines = new_lines ++ base_case
-
-    quote do
-      # Any use of this macro will insert more conditions,
-      # but credo can't know that ahead of time
-      # credo:disable-for-next-line Credo.Check.Refactor.CondStatements
-      cond do
-        unquote(lines)
-      end
+      _ ->
+        false
     end
   end
 
-  @doc false
-  defmacro filter(pattern) do
-    quote do
-      fn
-        unquote(pattern) -> true
-        _ -> false
-      end
+  @spec rule_type(Rule.rule_type()) :: (Tokenizer.rule() -> boolean)
+  def rule_type(type) do
+    fn
+      {:rule, {^type, %Rule{type: ^type}, _, _}} -> true
+      _ -> false
     end
   end
 
-  @doc false
-  # NOTE: any pattern passed to this MUST use 'here' for the variable
-  defmacro regex_filter(pattern, regex) do
-    clean_pattern =
-      Macro.prewalk(pattern, &Macro.update_meta(&1, fn x -> Keyword.delete(x, :counter) end))
-
-    quote do
-      fn
-        unquote(clean_pattern) ->
-          Filter.regex_case here do
-            unquote(regex) -> true
-          end
-
-        _ ->
-          false
-      end
+  @spec has_examples() :: (Tokenizer.rule() -> boolean)
+  def has_examples do
+    fn
+      {:rule, {_, _, _, [_]}} -> true
+      _ -> false
     end
   end
 
-  defmacro rule_starts_with(prefix) do
-    quote do
-      Filter.filter({:rule, {_, <<unquote(prefix), _::binary()>>, _, _}})
+  @spec body_matches(Regex.t()) :: (Tokenizer.rule() -> boolean)
+  def body_matches(regex) do
+    fn
+      {_, {_, _, body, _}} -> Regex.match?(regex, body)
+      _ -> false
     end
   end
 
-  defmacro rule_type(type) do
-    quote do
-      Filter.filter({:rule, {unquote(type), _, _, _}})
+  @spec rule_matches(Regex.t()) :: (Tokenizer.rule() -> boolean)
+  def rule_matches(regex) do
+    fn
+      {_, {_, rule, _, _}} -> Regex.match?(regex, rule)
+      _ -> false
     end
   end
 
-  defmacro has_examples do
-    quote do
-      Filter.filter({:rule, {_, _, _, [_ | _]}})
-    end
-  end
+  @spec example_matches(Regex.t()) :: (Tokenizer.rule() -> boolean)
+  def example_matches(regex) do
+    fn
+      {_, {_, _, _, examples}} ->
+        Enum.reduce(examples, false, fn x, acc -> Regex.match?(regex, x) || acc end)
 
-  defmacro body_matches(regex) do
-    quote do
-      Filter.regex_filter({_, {_, _, here, _}}, unquote(regex))
-    end
-  end
-
-  defmacro rule_matches(regex) do
-    quote do
-      Filter.regex_filter({_, {_, here, _, _}}, unquote(regex))
-    end
-  end
-
-  # these ones are only macros for consistency
-
-  defmacro example_matches(regex) do
-    quote do
-      fn
-        {_, {_, _, _, examples}} ->
-          Enum.reduce(examples, false, fn x, acc -> Regex.match?(unquote(regex), x) || acc end)
-
-        _ ->
-          false
-      end
+      _ ->
+        false
     end
   end
 end

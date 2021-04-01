@@ -17,10 +17,4 @@ defmodule LibJudge do
     children = []
     Supervisor.start_link(children, opts)
   end
-
-  @spec __using__(any) :: :ok
-  defmacro __using__(_) do
-    require LibJudge.Filter
-    :ok
-  end
 end
