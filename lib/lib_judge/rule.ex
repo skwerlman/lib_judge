@@ -33,7 +33,8 @@ defmodule LibJudge.Rule do
     # what the fuck wizards
     clean_str = String.replace(str, "–", "-")
 
-    Regex.scan(@rule_regex, clean_str)
+    @rule_regex
+    |> Regex.scan(clean_str)
     |> List.flatten()
     |> Enum.map(&from_string/1)
   end
@@ -41,19 +42,29 @@ defmodule LibJudge.Rule do
   @doc """
   Turns a `Rule` back into a string
   """
-  @spec to_string!(t()) :: String.t()
+  @spec to_string!(t()) :: String.t() | no_return
   def to_string!(rule) do
     case rule do
-      %__MODULE__{type: :rule, category: cat, subcategory: subcat, rule: rule, subrule: subrule} ->
+      %__MODULE__{
+        type: :subrule,
+        category: cat,
+        subcategory: subcat,
+        rule: rule,
+        subrule: subrule
+      }
+      when cat != nil and subcat != nil and rule != nil and subrule != nil ->
         cat <> subcat <> "." <> rule <> subrule
 
-      %__MODULE__{type: :rule, category: cat, subcategory: subcat, rule: rule} ->
+      %__MODULE__{type: :rule, category: cat, subcategory: subcat, rule: rule}
+      when cat != nil and subcat != nil and rule != nil ->
         cat <> subcat <> "." <> rule <> "."
 
-      %__MODULE__{type: :subcategory, category: cat, subcategory: subcat} ->
+      %__MODULE__{type: :subcategory, category: cat, subcategory: subcat}
+      when cat != nil and subcat != nil ->
         cat <> subcat <> "."
 
-      %__MODULE__{type: :category, category: cat} ->
+      %__MODULE__{type: :category, category: cat}
+      when cat != nil ->
         cat <> "."
     end
   end
@@ -63,9 +74,9 @@ defmodule LibJudge.Rule do
 
   Non-bang variant
   """
-  @spec to_string(t()) :: String.t()
+  @spec to_string(t()) :: {:ok, String.t()} | {:error, reason :: any}
   def to_string(rule) do
-    to_string!(rule)
+    {:ok, to_string!(rule)}
   rescue
     ArgumentError -> {:error, {:invalid_rule, "missing properties for type"}}
     err -> {:error, err}
