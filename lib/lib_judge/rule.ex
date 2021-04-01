@@ -147,4 +147,33 @@ defmodule LibJudge.Rule do
          subrule: <<subrule>>,
          type: :subrule
        ]
+
+  # these are a hack to make not-strictly-correct rule ids like
+  # '205.1' (should be '205.1.') work to make this more friendly
+  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1)>>)
+       when cat in 48..57,
+       do: [
+         category: <<cat>>,
+         subcategory: <<subcat::binary>>,
+         rule: <<rule::binary>>,
+         type: :rule
+       ]
+
+  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2)>>)
+       when cat in 48..57,
+       do: [
+         category: <<cat>>,
+         subcategory: <<subcat::binary>>,
+         rule: <<rule::binary>>,
+         type: :rule
+       ]
+
+  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3)>>)
+       when cat in 48..57,
+       do: [
+         category: <<cat>>,
+         subcategory: <<subcat::binary>>,
+         rule: <<rule::binary>>,
+         type: :rule
+       ]
 end

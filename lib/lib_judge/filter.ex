@@ -3,19 +3,19 @@ defmodule LibJudge.Filter do
   A collection of filters to do common searches on rules.
 
   Each filter returns a single-argument function designed to be
-  used with `Enum.filter/2`
+  used with `Enum.filter/2`.
   """
   alias LibJudge.Rule
   alias LibJudge.Tokenizer
   require Logger
 
-  @spec rule_starts_with(binary) :: (Tokenizer.rule() -> boolean)
+  @type filter :: (Tokenizer.rule() -> boolean)
+
+  @spec rule_starts_with(String.t()) :: filter
   def rule_starts_with(prefix) do
     fn
-      {:rule, {_, rule, _, _}} ->
-        rule
-        |> Rule.to_string()
-        |> case do
+      {:rule, {_type, rule, _body, _examples}} ->
+        case Rule.to_string(rule) do
           {:ok, string} -> String.starts_with?(string, prefix)
           _ -> false
         end
@@ -25,42 +25,42 @@ defmodule LibJudge.Filter do
     end
   end
 
-  @spec rule_type(Rule.rule_type()) :: (Tokenizer.rule() -> boolean)
+  @spec rule_type(Rule.rule_type()) :: filter
   def rule_type(type) do
     fn
-      {:rule, {^type, %Rule{type: ^type}, _, _}} -> true
+      {:rule, {^type, %Rule{type: ^type}, _body, _examples}} -> true
       _ -> false
     end
   end
 
-  @spec has_examples() :: (Tokenizer.rule() -> boolean)
+  @spec has_examples() :: filter
   def has_examples do
     fn
-      {:rule, {_, _, _, [_]}} -> true
+      {:rule, {_type, _rule, _body, [_at_least_one_example]}} -> true
       _ -> false
     end
   end
 
-  @spec body_matches(Regex.t()) :: (Tokenizer.rule() -> boolean)
+  @spec body_matches(Regex.t()) :: filter
   def body_matches(regex) do
     fn
-      {_, {_, _, body, _}} -> Regex.match?(regex, body)
+      {:rule, {_type, _rule, body, _examples}} -> Regex.match?(regex, body)
       _ -> false
     end
   end
 
-  @spec rule_matches(Regex.t()) :: (Tokenizer.rule() -> boolean)
+  @spec rule_matches(Regex.t()) :: filter
   def rule_matches(regex) do
     fn
-      {_, {_, rule, _, _}} -> Regex.match?(regex, rule)
+      {:rule, {_type, rule, _body, _examples}} -> Regex.match?(regex, rule)
       _ -> false
     end
   end
 
-  @spec example_matches(Regex.t()) :: (Tokenizer.rule() -> boolean)
+  @spec example_matches(Regex.t()) :: filter
   def example_matches(regex) do
     fn
-      {_, {_, _, _, examples}} ->
+      {:rule, {_type, _rule, _body, examples}} ->
         Enum.reduce(examples, false, fn x, acc -> Regex.match?(regex, x) || acc end)
 
       _ ->

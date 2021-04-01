@@ -145,7 +145,7 @@ defmodule LibJudge.Tokenizer do
   end
 
   # end tokenization
-  defp tokenize(string, [hd | _] = tokens) do
+  defp tokenize(string, [hd | _rest] = tokens) do
     IO.puts(inspect(String.slice(string, 0..9)))
     IO.puts(inspect(hd))
     tokens

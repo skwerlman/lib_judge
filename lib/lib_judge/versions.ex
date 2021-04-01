@@ -27,7 +27,7 @@ defmodule LibJudge.Versions do
     fname = ["priv/data/MagicCompRules ", ver, ".txt"]
 
     if ver != :current and File.exists?(fname) do
-      Logger.info("Reading locally cached rules version #{inspect ver}")
+      Logger.info("Reading locally cached rules version #{inspect(ver)}")
       File.read!(fname)
     else
       get_online(ver, allow_online)
@@ -48,7 +48,7 @@ defmodule LibJudge.Versions do
   end
 
   defp get_online(ver, allow_online) when allow_online == true do
-    Logger.info("Fetching rules version #{inspect ver}...")
+    Logger.info("Fetching rules version #{inspect(ver)}...")
     txt_url = get_url_from_version(ver)
 
     txt_ver =
@@ -74,8 +74,9 @@ defmodule LibJudge.Versions do
     end
   end
 
-  defp get_current_ver() do
+  defp get_current_ver do
     Logger.info("Fetching current rules version...")
+
     resp =
       :get
       |> Finch.build(@wizards_rules_page)
