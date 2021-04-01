@@ -51,20 +51,16 @@ defmodule LibJudge.Rule do
         subcategory: subcat,
         rule: rule,
         subrule: subrule
-      }
-      when cat != nil and subcat != nil and rule != nil and subrule != nil ->
+      } ->
         cat <> subcat <> "." <> rule <> subrule
 
-      %__MODULE__{type: :rule, category: cat, subcategory: subcat, rule: rule}
-      when cat != nil and subcat != nil and rule != nil ->
+      %__MODULE__{type: :rule, category: cat, subcategory: subcat, rule: rule} ->
         cat <> subcat <> "." <> rule <> "."
 
-      %__MODULE__{type: :subcategory, category: cat, subcategory: subcat}
-      when cat != nil and subcat != nil ->
+      %__MODULE__{type: :subcategory, category: cat, subcategory: subcat} ->
         cat <> subcat <> "."
 
-      %__MODULE__{type: :category, category: cat}
-      when cat != nil ->
+      %__MODULE__{type: :category, category: cat} ->
         cat <> "."
     end
   end
