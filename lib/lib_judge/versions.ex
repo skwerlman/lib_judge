@@ -13,14 +13,18 @@ defmodule LibJudge.Versions do
   @doc """
   Gets the Magic: The Gathering Comprehensive Rules for the given version.
 
-  If the rules cannot be found locally and `allow_online` is `true`,
+  If the rules cannot be found locally,
   this attempts to download them from Wizards.
 
-  Versions are either a date written as "YYYYMMDD", or the atom `:current`.
+  Versions are either a date written as "YYYYMMDD",
+  or the atom `:current`.
 
-  If the version is `:current` and `allow_online` is `true`, the
-  current version is obtained from Wizards, and the latest rules are
+  If the version is `:current`, the current version
+  is obtained from Wizards, and the latest rules are
   downloaded.
+
+  If `allow_online` is `false`, any action that would
+  go over the internet raises an error instead.
   """
   @spec get!(version :: String.t() | :current, boolean) :: String.t() | no_return
   def get!(ver, allow_online \\ true) do

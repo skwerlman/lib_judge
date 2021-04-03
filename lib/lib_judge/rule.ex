@@ -13,23 +13,39 @@ defmodule LibJudge.Rule do
         }
   defstruct [:category, :subcategory, :rule, :subrule, :type]
 
-  @rule_regex ~r/\b\d{3}(?:\.\d{1,3}(?:\-\d{1,3}|[a-z](?:\-[b-z])?)?)?\b/
+  @rule_regex ~r/\b[1-9](?:\d{2}(?:\.\d{1,3}(?:\-\d{1,3}|[a-z](?:\-[b-z])?)?\b|\.)?|\.)/
 
   @doc """
   Creates a `Rule` struct from a string
+
+  ## Examples
+
+      iex> LibJudge.Rule.from_string("702.21j")
+      %LibJudge.Rule{type: :subrule, category: "7", subcategory: "02", rule: "21", subrule: "j"}
   """
-  @spec from_string(String.t()) :: t
+  @spec from_string(String.t()) :: t | {:error, String.t()}
   def from_string(str) do
     opts = split(str)
 
-    struct(__MODULE__, opts)
+    case opts do
+      {:error, reason} -> {:error, reason}
+      _ -> struct(__MODULE__, opts)
+    end
   end
 
   @doc """
   Creates a list of `Rule`s referenced in a string
+
+  ## Examples
+
+      iex> LibJudge.Rule.all_from_string("See rules 702.21j and 702.108.")
+      [
+        %LibJudge.Rule{type: :subrule, category: "7", subcategory: "02", rule: "21", subrule: "j"},
+        %LibJudge.Rule{type: :rule, category: "7", subcategory: "02", rule: "108", subrule: nil}
+      ]
   """
-  @spec all_from_string(String.t()) :: [t]
-  def all_from_string(str) do
+  @spec all_from_string(String.t()) :: [t] | {:error, String.t()}
+  def all_from_string(str) when is_binary(str) do
     # what the fuck wizards
     clean_str = String.replace(str, "–", "-")
 
@@ -39,8 +55,17 @@ defmodule LibJudge.Rule do
     |> Enum.map(&from_string/1)
   end
 
+  def all_from_string(_not_a_str) do
+    {:error, "input is not a string"}
+  end
+
   @doc """
   Turns a `Rule` back into a string
+
+  ## Examples
+
+      iex> LibJudge.Rule.to_string!(%LibJudge.Rule{type: :subrule, category: "7", subcategory: "02", rule: "21", subrule: "j"})
+      "702.21j"
   """
   @spec to_string!(t()) :: String.t() | no_return
   def to_string!(rule) do
@@ -69,6 +94,11 @@ defmodule LibJudge.Rule do
   Turns a `Rule` back into a string
 
   Non-bang variant
+
+  ## Examples
+
+      iex> LibJudge.Rule.to_string(%LibJudge.Rule{type: :category, category: "1"})
+      {:ok, "1."}
   """
   @spec to_string(t()) :: {:ok, String.t()} | {:error, reason :: any}
   def to_string(rule) do
@@ -172,4 +202,8 @@ defmodule LibJudge.Rule do
          rule: <<rule::binary>>,
          type: :rule
        ]
+
+  defp split(str) do
+    {:error, "invalid rule: #{inspect(str)}"}
+  end
 end
