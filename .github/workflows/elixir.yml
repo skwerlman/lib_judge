@@ -64,7 +64,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Setup elixir
-      uses: actions/setup-elixir@v1
+      uses: erlef/setup-beam@v1
       with:
         elixir-version: 1.12.1
         otp-version: 24.0
@@ -97,7 +97,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Setup elixir
-      uses: actions/setup-elixir@v1
+      uses: erlef/setup-beam@v1
       with:
         otp-version: ${{matrix.otp}}
         elixir-version: ${{matrix.elixir}}
@@ -130,7 +130,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Setup elixir
-      uses: actions/setup-elixir@v1
+      uses: erlef/setup-beam@v1
       with:
         otp-version: ${{matrix.otp}}
         elixir-version: ${{matrix.elixir}}
@@ -171,7 +171,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Setup elixir
-      uses: actions/setup-elixir@v1
+      uses: erlef/setup-beam@v1
       with:
         otp-version: ${{matrix.otp}}
         elixir-version: ${{matrix.elixir}}
