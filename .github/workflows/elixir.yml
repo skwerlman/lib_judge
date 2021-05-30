@@ -24,16 +24,16 @@ jobs:
       id: cache-build
       uses: actions/cache@v1
       with:
-        path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
+        path: _build/dev
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-build
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Test Build
       id: cache-build-test
       uses: actions/cache@v1
       with:
-        path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build-test
+        path: _build/test
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-build-test
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -41,7 +41,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Install Dependencies
@@ -59,6 +59,10 @@ jobs:
       run: mix compile --force --warnings-as-errors --all-warnings
 
   formatting:
+    strategy:
+      matrix:
+        otp: ['24.0']
+        elixir: ['1.12.1']
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -66,14 +70,14 @@ jobs:
     - name: Setup elixir
       uses: erlef/setup-beam@v1
       with:
-        elixir-version: 1.12.1
-        otp-version: 24.0
+        otp-version: ${{matrix.otp}}
+        elixir-version: ${{matrix.elixir}}
     - name: Cache Build
       id: cache-build
       uses: actions/cache@v1
       with:
-        path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
+        path: _build/dev
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-build
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -81,7 +85,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Check Formatting
@@ -105,8 +109,8 @@ jobs:
       id: cache-build
       uses: actions/cache@v1
       with:
-        path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
+        path: _build/dev
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-build
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -114,7 +118,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Lint
@@ -138,8 +142,8 @@ jobs:
       id: cache-build
       uses: actions/cache@v1
       with:
-        path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build
+        path: _build/dev
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-build
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -147,15 +151,15 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache PLTs
       id: cache-plt
       uses: actions/cache@v1
       with:
-        path: _build/dev
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-plt
+        path: _build
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-plt
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Run Static Analysis
@@ -179,8 +183,8 @@ jobs:
       id: cache-build
       uses: actions/cache@v1
       with:
-        path: _build
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-build-test
+        path: _build/test
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-build-test
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Cache Dependencies
@@ -188,7 +192,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-deps
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{matrix.otp}}-${{matrix.elixir}}-deps
         restore-keys: |
           ${{ runner.os }}-mix-
     - name: Run Tests
