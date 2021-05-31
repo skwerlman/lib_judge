@@ -3,6 +3,8 @@ defmodule LibJudgeRuleTest do
   use PropCheck
   doctest LibJudge.Rule
 
+  @runs_per_test 5_000
+
   defp rule_type do
     let type <- oneof([:category, :subcategory, :rule, :subrule]) do
       type
@@ -12,6 +14,15 @@ defmodule LibJudgeRuleTest do
   defp subrule_letter do
     let char <- choose(0x61, 0x7A) do
       to_string([char])
+    end
+  end
+
+  defp long_subrule_letter do
+    let [
+      letter <- subrule_letter(),
+      letter2 <- subrule_letter()
+    ] do
+      letter <> letter2
     end
   end
 
@@ -63,12 +74,29 @@ defmodule LibJudgeRuleTest do
     end
   end
 
+  defp long_subrule do
+    let [
+      cat <- integer(1, 9),
+      subcat <- integer(0, 99),
+      rule <- integer(1, 999),
+      subrule <- long_subrule_letter()
+    ] do
+      %LibJudge.Rule{
+        type: :subrule,
+        category: to_string(cat),
+        subcategory: subcat |> to_string() |> String.pad_leading(2, "0"),
+        rule: to_string(rule),
+        subrule: subrule
+      }
+    end
+  end
+
   defp maybe_bad_rule do
     let [
       cat <- oneof([integer(1, 9), exactly(nil)]),
       subcat <- oneof([integer(0, 99), exactly(nil)]),
       rule <- oneof([integer(1, 999), exactly(nil)]),
-      subrule <- oneof([subrule_letter(), exactly(nil)]),
+      subrule <- oneof([subrule_letter(), long_subrule_letter(), exactly(nil)]),
       type <- oneof([rule_type(), exactly(nil)])
     ] do
       pcat =
@@ -111,7 +139,10 @@ defmodule LibJudgeRuleTest do
       sc2 <- integer(0, 9),
       ending <- oneof(["", "."])
     ] do
-      {to_string(cat) <> to_string(sc1) <> to_string(sc2) <> ending, :subcategory}
+      {to_string(cat) <>
+         to_string(sc1) <>
+         to_string(sc2) <>
+         ending, :subcategory}
     end
   end
 
@@ -123,8 +154,12 @@ defmodule LibJudgeRuleTest do
       rule <- integer(1, 999),
       ending <- oneof(["", "."])
     ] do
-      {to_string(cat) <> to_string(sc1) <> to_string(sc2) <> "." <> to_string(rule) <> ending,
-       :rule}
+      {to_string(cat) <>
+         to_string(sc1) <>
+         to_string(sc2) <>
+         "." <>
+         to_string(rule) <>
+         ending, :rule}
     end
   end
 
@@ -136,8 +171,31 @@ defmodule LibJudgeRuleTest do
       rule <- integer(1, 999),
       subrule <- subrule_letter()
     ] do
-      {to_string(cat) <> to_string(sc1) <> to_string(sc2) <> "." <> to_string(rule) <> subrule,
-       :subrule}
+      {to_string(cat) <>
+         to_string(sc1) <>
+         to_string(sc2) <>
+         "." <>
+         to_string(rule) <>
+         subrule, :subrule}
+    end
+  end
+
+  defp long_subrule_str do
+    let [
+      cat <- integer(1, 9),
+      sc1 <- integer(0, 9),
+      sc2 <- integer(0, 9),
+      rule <- integer(1, 999),
+      subrule <- subrule_letter(),
+      subrule2 <- subrule_letter()
+    ] do
+      {to_string(cat) <>
+         to_string(sc1) <>
+         to_string(sc2) <>
+         "." <>
+         to_string(rule) <>
+         subrule <>
+         subrule2, :subrule}
     end
   end
 
@@ -158,7 +216,9 @@ defmodule LibJudgeRuleTest do
   end
 
   describe "rule parser" do
-    property "produces the same output as input", detect_exceptions: true, numtests: 5_000 do
+    property "produces the same output as input",
+      detect_exceptions: true,
+      numtests: @runs_per_test do
       forall rule_struct <- rule() do
         str = LibJudge.Rule.to_string!(rule_struct)
         struct = LibJudge.Rule.from_string(str)
@@ -166,7 +226,38 @@ defmodule LibJudgeRuleTest do
       end
     end
 
-    property "from_string never explodes", detect_exceptions: true, numtests: 5_000 do
+    property "rejects invalid subrules in rule structs",
+      detect_exceptions: true,
+      numtests: @runs_per_test do
+      trap_exit(
+        forall rule_struct <- long_subrule() do
+          assert match?({:error, _}, LibJudge.Rule.to_string(rule_struct))
+          # todo: additional validation
+        end
+      )
+    end
+
+    property "rejects invalid subrules in rule strings",
+      detect_exceptions: true,
+      numtests: @runs_per_test do
+      trap_exit(
+        forall {rule_string, _type} <- long_subrule_str() do
+          assert match?({:error, _}, LibJudge.Rule.from_string(rule_string))
+          {:error, error} = LibJudge.Rule.from_string(rule_string)
+          case error do
+            err when is_binary(err) ->
+              assert String.contains?(err, rule_string)
+            err = %LibJudge.Rule.InvalidPartError{} ->
+              assert err.part in [:rule, :subrule]
+              assert String.contains?(rule_string, err.value)
+          end
+        end
+      )
+    end
+  end
+
+  describe "function" do
+    property "from_string never explodes", detect_exceptions: true, numtests: @runs_per_test do
       trap_exit(
         forall input <- term() do
           case LibJudge.Rule.from_string(input) do
@@ -178,7 +269,7 @@ defmodule LibJudgeRuleTest do
       )
     end
 
-    property "all_from_string never explodes", detect_exceptions: true, numtests: 5_000 do
+    property "all_from_string never explodes", detect_exceptions: true, numtests: @runs_per_test do
       trap_exit(
         forall input <- term() do
           case LibJudge.Rule.all_from_string(input) do
@@ -200,7 +291,7 @@ defmodule LibJudgeRuleTest do
       )
     end
 
-    property "to_string never explodes", detect_exceptions: true, numtests: 5_000 do
+    property "to_string never explodes", detect_exceptions: true, numtests: @runs_per_test do
       trap_exit(
         forall input <- term() do
           case LibJudge.Rule.to_string(input) do
@@ -212,7 +303,9 @@ defmodule LibJudgeRuleTest do
       )
     end
 
-    property "to_string handles malformed %Rule{}s", detect_exceptions: true, numtests: 5_000 do
+    property "to_string handles malformed %Rule{}s",
+      detect_exceptions: true,
+      numtests: @runs_per_test do
       trap_exit(
         forall input <- maybe_bad_rule() do
           case LibJudge.Rule.to_string(input) do
@@ -224,7 +317,9 @@ defmodule LibJudgeRuleTest do
       )
     end
 
-    property "from_string identifies rules correctly", detect_exceptions: true, numtests: 5_000 do
+    property "from_string identifies rules correctly",
+      detect_exceptions: true,
+      numtests: @runs_per_test do
       forall {input, type} <- any_rule_str() do
         struct = LibJudge.Rule.from_string(input)
 
@@ -238,7 +333,9 @@ defmodule LibJudgeRuleTest do
       end
     end
 
-    property "all_from_string handles many rules", detect_exceptions: true, numtests: 5_000 do
+    property "all_from_string handles many rules",
+      detect_exceptions: true,
+      numtests: @runs_per_test do
       forall {rules_str, types} <- many_rules() do
         out = LibJudge.Rule.all_from_string(rules_str)
         assert length(out) == length(types)
