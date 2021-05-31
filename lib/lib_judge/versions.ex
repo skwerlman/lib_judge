@@ -27,10 +27,16 @@ defmodule LibJudge.Versions do
   go over the internet raises an error instead.
   """
   @spec get!(version :: String.t() | :current, boolean) :: String.t() | no_return
-  def get!(ver, allow_online \\ true) do
+  def get!(ver, allow_online \\ true)
+
+  def get!(:current, allow_online) do
+    get_online(:current, allow_online)
+  end
+
+  def get!(ver, allow_online) do
     fname = ["priv/data/MagicCompRules ", ver, ".txt"]
 
-    if ver != :current and File.exists?(fname) do
+    if File.exists?(fname) do
       Logger.info("Reading locally cached rules version #{inspect(ver)}")
       File.read!(fname)
     else
