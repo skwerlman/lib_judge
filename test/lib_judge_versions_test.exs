@@ -1,5 +1,5 @@
 defmodule LibJudgeVersionsTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import ExUnit.CaptureLog
   alias LibJudge.Versions
   doctest LibJudge.Versions
@@ -18,8 +18,8 @@ defmodule LibJudgeVersionsTest do
     end
 
     test "can fetch a cached copy while allow_online is false" do
-      output = capture_log(fn -> Versions.get!("20200601", false) end)
-      assert String.contains?(output, "Reading locally cached rules version \"20200601\"")
+      output = capture_log(fn -> Versions.get!("20210224", false) end)
+      assert String.contains?(output, "Reading locally cached rules version \"20210224\"")
     end
 
     test "raises when trying to go online while allow_online is false" do
