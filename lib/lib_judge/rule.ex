@@ -24,7 +24,7 @@ defmodule LibJudge.Rule do
       %LibJudge.Rule{type: :subrule, category: "7", subcategory: "02", rule: "21", subrule: "j"}
   """
   @spec from_string(String.t()) :: t | {:error, String.t()}
-  def from_string(str) do
+  def from_string(str) when is_binary(str) do
     opts = split(str)
 
     case opts do
@@ -68,7 +68,7 @@ defmodule LibJudge.Rule do
       "702.21j"
   """
   @spec to_string!(t()) :: String.t() | no_return
-  def to_string!(rule) do
+  def to_string!(rule = %{__struct__: kind}) when kind == __MODULE__ do
     case rule do
       %__MODULE__{
         type: :subrule,
@@ -104,8 +104,17 @@ defmodule LibJudge.Rule do
   def to_string(rule) do
     {:ok, to_string!(rule)}
   rescue
-    ArgumentError -> {:error, {:invalid_rule, "missing properties for type"}}
-    err -> {:error, err}
+    ArgumentError ->
+      {:error, {:invalid_rule, "missing properties for type"}}
+
+    err in [FunctionClauseError] ->
+      case err.function do
+        :to_string! -> {:error, {:invalid_rule, "not a %Rule{}"}}
+        _ -> {:error, {err}}
+      end
+
+    err ->
+      {:error, {err}}
   end
 
   defp split(rule = <<cat::utf8, subcat_1::utf8, subcat_2::utf8>>)
