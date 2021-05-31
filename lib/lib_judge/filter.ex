@@ -98,10 +98,48 @@ defmodule LibJudge.Filter do
     end
   end
 
+  @spec any([filter]) :: filter
+  def any(filters) do
+    new_filter = _any_impl(filters)
+    fn x ->
+      new_filter.(x)
+    end
+  end
+
+  defp _any_impl(filters) do
+    Enum.reduce(
+      filters,
+      fn f, acc ->
+        fn x ->
+          f.(x) or acc.(x)
+        end
+      end
+      )
+  end
+
   @spec both(filter, filter) :: filter
   def both(filter1, filter2) do
     fn x ->
       filter1.(x) and filter2.(x)
     end
+  end
+
+  @spec all([filter]) :: filter
+  def all(filters) do
+    new_filter = _all_impl(filters)
+    fn x ->
+      new_filter.(x)
+    end
+  end
+
+  defp _all_impl(filters) do
+    Enum.reduce(
+      filters,
+      fn f, acc ->
+        fn x ->
+          f.(x) and acc.(x)
+        end
+      end
+      )
   end
 end
