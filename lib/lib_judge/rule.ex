@@ -33,6 +33,10 @@ defmodule LibJudge.Rule do
     end
   end
 
+  def from_string(_not_a_str) do
+    {:error, "input is not a string"}
+  end
+
   @doc """
   Creates a list of `Rule`s referenced in a string
 
