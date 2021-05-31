@@ -1,5 +1,5 @@
 defmodule LibJudgeVersionsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   import ExUnit.CaptureLog
   alias LibJudge.Versions
   doctest LibJudge.Versions
