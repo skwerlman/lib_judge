@@ -145,9 +145,8 @@ defmodule LibJudge.Tokenizer do
   end
 
   # end tokenization
-  defp tokenize(string, [hd | _rest] = tokens) do
-    IO.puts(inspect(String.slice(string, 0..9)))
-    IO.puts(inspect(hd))
+  defp tokenize(_string, tokens) do
+    # TODO: when glossary parsing is added, _string should be ""
     tokens
   end
 
