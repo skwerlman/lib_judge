@@ -3,6 +3,8 @@ defmodule LibJudge.Rule do
   Defines the `Rule` structure and provides methods for generating
   and working with them
   """
+  alias LibJudge.Rule.InvalidPartError
+
   @type rule_type :: :category | :subcategory | :rule | :subrule
   @type t :: %__MODULE__{
           category: String.t(),
@@ -25,7 +27,12 @@ defmodule LibJudge.Rule do
   """
   @spec from_string(String.t()) :: t | {:error, String.t()}
   def from_string(str) when is_binary(str) do
-    opts = split(str)
+    opts =
+      try do
+        split!(str)
+      rescue
+        err in InvalidPartError -> {:error, err}
+      end
 
     case opts do
       {:error, reason} -> {:error, reason}
@@ -81,15 +88,26 @@ defmodule LibJudge.Rule do
         rule: rule,
         subrule: subrule
       } ->
+        validate_cat!(cat)
+        validate_subcat!(subcat)
+        validate_rule!(rule)
+        validate_subrule!(subrule)
+
         cat <> subcat <> "." <> rule <> subrule
 
       %__MODULE__{type: :rule, category: cat, subcategory: subcat, rule: rule} ->
+        validate_cat!(cat)
+        validate_subcat!(subcat)
+        validate_rule!(rule)
         cat <> subcat <> "." <> rule <> "."
 
       %__MODULE__{type: :subcategory, category: cat, subcategory: subcat} ->
+        validate_cat!(cat)
+        validate_subcat!(subcat)
         cat <> subcat <> "."
 
       %__MODULE__{type: :category, category: cat} ->
+        validate_cat!(cat)
         cat <> "."
     end
   end
@@ -111,7 +129,7 @@ defmodule LibJudge.Rule do
     ArgumentError ->
       {:error, {:invalid_rule, "missing properties for type"}}
 
-    err in [FunctionClauseError] ->
+    err in FunctionClauseError ->
       case err.function do
         :to_string! -> {:error, {:invalid_rule, "not a %Rule{}"}}
         _ -> {:error, {err}}
@@ -121,102 +139,205 @@ defmodule LibJudge.Rule do
       {:error, {err}}
   end
 
-  defp split(rule = <<cat::utf8, subcat_1::utf8, subcat_2::utf8>>)
+  defp split!(rule = <<cat::utf8, subcat_1::utf8, subcat_2::utf8>>)
        when cat in 48..57 and subcat_1 in 48..57 and subcat_2 in 48..57,
-       do: split(rule <> ".")
+       do: split!(rule <> ".")
 
-  defp split(<<cat::utf8, ".">>) when cat in 48..57, do: [category: <<cat>>, type: :category]
+  defp split!(<<cat::utf8, ".">>) when cat in 48..57 do
+    validate_cat!(<<cat>>)
+    [category: <<cat>>, type: :category]
+  end
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".">>) when cat in 48..57,
-    do: [category: <<cat>>, subcategory: <<subcat::binary>>, type: :subcategory]
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".">>) when cat in 48..57 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    [category: <<cat>>, subcategory: subcat, type: :subcategory]
+  end
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), ".">>)
-       when cat in 48..57,
-       do: [
-         category: <<cat>>,
-         subcategory: <<subcat::binary>>,
-         rule: <<rule::binary>>,
-         type: :rule
-       ]
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), ".">>)
+       when cat in 48..57 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), ".">>)
-       when cat in 48..57,
-       do: [
-         category: <<cat>>,
-         subcategory: <<subcat::binary>>,
-         rule: <<rule::binary>>,
-         type: :rule
-       ]
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      type: :rule
+    ]
+  end
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), ".">>)
-       when cat in 48..57,
-       do: [
-         category: <<cat>>,
-         subcategory: <<subcat::binary>>,
-         rule: <<rule::binary>>,
-         type: :rule
-       ]
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), ".">>)
+       when cat in 48..57 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), subrule::utf8>>)
-       when cat in 48..57 and subrule in 97..122,
-       do: [
-         category: <<cat>>,
-         subcategory: subcat,
-         rule: <<rule::binary>>,
-         subrule: <<subrule>>,
-         type: :subrule
-       ]
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      type: :rule
+    ]
+  end
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), subrule::utf8>>)
-       when cat in 48..57 and subrule in 97..122,
-       do: [
-         category: <<cat>>,
-         subcategory: <<subcat::binary>>,
-         rule: <<rule::binary>>,
-         subrule: <<subrule>>,
-         type: :subrule
-       ]
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), ".">>)
+       when cat in 48..57 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), subrule::utf8>>)
-       when cat in 48..57 and subrule in 97..122,
-       do: [
-         category: <<cat>>,
-         subcategory: <<subcat::binary>>,
-         rule: <<rule::binary>>,
-         subrule: <<subrule>>,
-         type: :subrule
-       ]
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      type: :rule
+    ]
+  end
+
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), subrule::utf8>>)
+       when cat in 48..57 and subrule in 97..122 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
+    validate_subrule!(<<subrule>>)
+
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      subrule: <<subrule>>,
+      type: :subrule
+    ]
+  end
+
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), subrule::utf8>>)
+       when cat in 48..57 and subrule in 97..122 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
+    validate_subrule!(<<subrule>>)
+
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      subrule: <<subrule>>,
+      type: :subrule
+    ]
+  end
+
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), subrule::utf8>>)
+       when cat in 48..57 and subrule in 97..122 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
+    validate_subrule!(<<subrule>>)
+
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      subrule: <<subrule>>,
+      type: :subrule
+    ]
+  end
 
   # these are a hack to make not-strictly-correct rule ids like
   # '205.1' (should be '205.1.') work to make this more friendly
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1)>>)
-       when cat in 48..57,
-       do: [
-         category: <<cat>>,
-         subcategory: <<subcat::binary>>,
-         rule: <<rule::binary>>,
-         type: :rule
-       ]
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1)>>)
+       when cat in 48..57 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2)>>)
-       when cat in 48..57,
-       do: [
-         category: <<cat>>,
-         subcategory: <<subcat::binary>>,
-         rule: <<rule::binary>>,
-         type: :rule
-       ]
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      type: :rule
+    ]
+  end
 
-  defp split(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3)>>)
-       when cat in 48..57,
-       do: [
-         category: <<cat>>,
-         subcategory: <<subcat::binary>>,
-         rule: <<rule::binary>>,
-         type: :rule
-       ]
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2)>>)
+       when cat in 48..57 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
 
-  defp split(str) do
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      type: :rule
+    ]
+  end
+
+  defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3)>>)
+       when cat in 48..57 do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
+
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      type: :rule
+    ]
+  end
+
+  defp split!(str) do
     {:error, "invalid rule: #{inspect(str)}"}
+  end
+
+  defp validate_cat!(cat) when is_binary(cat) do
+    unless String.match?(cat, ~r/^\d$/) do
+      raise InvalidPartError, {:category, cat}
+    end
+  end
+
+  defp validate_subcat!(subcat) do
+    unless String.match?(subcat, ~r/^\d\d$/) do
+      raise InvalidPartError, {:subcategory, subcat}
+    end
+  end
+
+  defp validate_rule!(rule) do
+    unless String.match?(rule, ~r/^\d\d?\d?$/) do
+      raise InvalidPartError, {:rule, rule}
+    end
+  end
+
+  defp validate_subrule!(subrule) do
+    unless String.match?(subrule, ~r/^[a-z]$/) do
+      raise InvalidPartError, {:subrule, subrule}
+    end
+  end
+end
+
+defmodule LibJudge.Rule.InvalidPartError do
+  @moduledoc """
+  An exception raised when validating `LibJudge.Rule` structs.
+  """
+  alias __MODULE__
+  defexception [:message, :part, :value]
+
+  @doc false
+  @impl Exception
+  def exception({part, value}) do
+    msg = "invalid part:\n\tPart:\t#{inspect(part)}\n\tValue:\t#{inspect(value)}"
+    %InvalidPartError{message: msg, part: part, value: value}
+  end
+
+  def exception([]) do
+    msg = "invalid part"
+    %InvalidPartError{message: msg}
+  end
+
+  def exception(part) do
+    msg = "invalid part:\n\tPart:\t#{inspect(part)}"
+    %InvalidPartError{message: msg, part: part}
   end
 end
