@@ -12,6 +12,7 @@ defmodule LibJudge do
   @spec tokenize(binary) :: [Tokenizer.token()]
   defdelegate tokenize(text), to: Tokenizer
 
+  @doc false
   @spec start(any, any) :: {:error, any} | {:ok, pid}
   def start(_type, _args) do
     opts = [
