@@ -232,7 +232,8 @@ defmodule LibJudgeRuleTest do
       trap_exit(
         forall rule_struct <- long_subrule() do
           assert match?({:error, _}, LibJudge.Rule.to_string(rule_struct))
-          # todo: additional validation
+          {:error, error} = LibJudge.Rule.to_string(rule_struct)
+          assert match?(%LibJudge.Rule.InvalidPartError{}, error)
         end
       )
     end

@@ -132,11 +132,11 @@ defmodule LibJudge.Rule do
     err in FunctionClauseError ->
       case err.function do
         :to_string! -> {:error, {:invalid_rule, "not a %Rule{}"}}
-        _ -> {:error, {err}}
+        _ -> {:error, err}
       end
 
     err ->
-      {:error, {err}}
+      {:error, err}
   end
 
   defp split!(rule = <<cat::utf8, subcat_1::utf8, subcat_2::utf8>>)
