@@ -1,4 +1,4 @@
 defmodule LibJudgeVersionsTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest LibJudge.Versions
 end

@@ -1,5 +1,5 @@
 defmodule LibJudgeRuleTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use PropCheck
   doctest LibJudge.Rule
 
