@@ -6,25 +6,19 @@ defmodule LibJudgeVersionsTest do
 
   describe "rule fetcher" do
     test "can fetch :current version" do
-      output = capture_log(
-        fn -> Versions.get!(:current) end
-      )
+      output = capture_log(fn -> Versions.get!(:current) end)
       assert String.contains?(output, "Fetching current rules version...")
       assert String.contains?(output, "Reading locally cached rules version")
     end
 
     test "can fetch a specified version" do
       File.rm("priv/data/MagicCompRules\ 20200601.txt")
-      output = capture_log(
-        fn -> Versions.get!("20200601") end
-      )
+      output = capture_log(fn -> Versions.get!("20200601") end)
       assert String.contains?(output, "Reading locally cached rules version \"20200601\"")
     end
 
     test "can fetch a cached copy while allow_online is false" do
-      output = capture_log(
-        fn -> Versions.get!("20200601", false) end
-      )
+      output = capture_log(fn -> Versions.get!("20200601", false) end)
       assert String.contains?(output, "Reading locally cached rules version \"20200601\"")
     end
 

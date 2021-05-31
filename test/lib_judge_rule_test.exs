@@ -244,9 +244,11 @@ defmodule LibJudgeRuleTest do
         forall {rule_string, _type} <- long_subrule_str() do
           assert match?({:error, _}, LibJudge.Rule.from_string(rule_string))
           {:error, error} = LibJudge.Rule.from_string(rule_string)
+
           case error do
             err when is_binary(err) ->
               assert String.contains?(err, rule_string)
+
             err = %LibJudge.Rule.InvalidPartError{} ->
               assert err.part in [:rule, :subrule]
               assert String.contains?(rule_string, err.value)
