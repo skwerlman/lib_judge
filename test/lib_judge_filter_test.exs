@@ -79,8 +79,8 @@ defmodule LibJudgeFilterTest do
     ])
   end
 
-  describe "filter" do
-    test "rule_is finds exactly 1 match when it succeeds" do
+  describe "rule_is filter" do
+    test "finds exactly 1 match when it succeeds" do
       filter = Filter.rule_is("100.1.")
       assert is_function(filter)
       assert :erlang.fun_info(filter)[:arity] == 1
@@ -90,7 +90,7 @@ defmodule LibJudgeFilterTest do
       assert match?({:rule, {:rule, %LibJudge.Rule{type: :rule}, _, _}}, hd(matches))
     end
 
-    property "rule_is only ever finds 0 or 1 matches",
+    property "only ever finds 0 or 1 matches",
       detect_exceptions: true,
       numtests: @runs_per_test do
       forall {rule_str, type} <- any_rule_str() do
@@ -109,7 +109,7 @@ defmodule LibJudgeFilterTest do
       end
     end
 
-    property "rule_is handles bad data gracefully",
+    property "handles bad data gracefully",
       detect_exceptions: true,
       numtests: @runs_per_test do
       trap_exit(
