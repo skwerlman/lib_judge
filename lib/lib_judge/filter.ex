@@ -62,7 +62,7 @@ defmodule LibJudge.Filter do
   @spec has_examples() :: filter
   def has_examples do
     fn
-      {:rule, {_type, _rule, _body, [_at_least_one|_example]}} -> true
+      {:rule, {_type, _rule, _body, [_at_least_one | _example]}} -> true
       _ -> false
     end
   end
