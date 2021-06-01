@@ -221,7 +221,7 @@ defmodule LibJudgeRuleTest do
       numtests: @runs_per_test do
       forall rule_struct <- rule() do
         str = LibJudge.Rule.to_string!(rule_struct)
-        struct = LibJudge.Rule.from_string(str)
+        {:ok, struct} = LibJudge.Rule.from_string(str)
         equals(rule_struct, struct)
       end
     end
@@ -264,7 +264,7 @@ defmodule LibJudgeRuleTest do
       trap_exit(
         forall input <- term() do
           case LibJudge.Rule.from_string(input) do
-            %LibJudge.Rule{} -> true
+            {:ok, %LibJudge.Rule{}} -> true
             {:error, _reason} -> true
             _ -> false
           end
@@ -276,7 +276,7 @@ defmodule LibJudgeRuleTest do
       trap_exit(
         forall input <- term() do
           case LibJudge.Rule.all_from_string(input) do
-            l when is_list(l) ->
+            {:ok, l} when is_list(l) ->
               Enum.reduce(l, true, fn x, acc ->
                 case x do
                   %LibJudge.Rule{} -> true
@@ -324,7 +324,7 @@ defmodule LibJudgeRuleTest do
       detect_exceptions: true,
       numtests: @runs_per_test do
       forall {input, type} <- any_rule_str() do
-        struct = LibJudge.Rule.from_string(input)
+        {:ok, struct} = LibJudge.Rule.from_string(input)
 
         case struct do
           %LibJudge.Rule{type: t} ->
@@ -340,7 +340,7 @@ defmodule LibJudgeRuleTest do
       detect_exceptions: true,
       numtests: @runs_per_test do
       forall {rules_str, types} <- many_rules() do
-        out = LibJudge.Rule.all_from_string(rules_str)
+        {:ok, out} = LibJudge.Rule.all_from_string(rules_str)
         assert length(out) == length(types)
         zipped = Enum.zip(out, types)
 

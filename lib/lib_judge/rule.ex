@@ -23,9 +23,9 @@ defmodule LibJudge.Rule do
   ## Examples
 
       iex> LibJudge.Rule.from_string("702.21j")
-      %LibJudge.Rule{type: :subrule, category: "7", subcategory: "02", rule: "21", subrule: "j"}
+      {:ok, %LibJudge.Rule{type: :subrule, category: "7", subcategory: "02", rule: "21", subrule: "j"}}
   """
-  @spec from_string(String.t()) :: t | {:error, String.t()}
+  @spec from_string(String.t()) :: {:ok, t} | {:error, String.t()}
   def from_string(str) when is_binary(str) do
     opts =
       try do
@@ -36,7 +36,7 @@ defmodule LibJudge.Rule do
 
     case opts do
       {:error, reason} -> {:error, reason}
-      _ -> struct(__MODULE__, opts)
+      _ -> {:ok, struct(__MODULE__, opts)}
     end
   end
 
@@ -50,20 +50,31 @@ defmodule LibJudge.Rule do
   ## Examples
 
       iex> LibJudge.Rule.all_from_string("See rules 702.21j and 702.108.")
-      [
-        %LibJudge.Rule{type: :subrule, category: "7", subcategory: "02", rule: "21", subrule: "j"},
-        %LibJudge.Rule{type: :rule, category: "7", subcategory: "02", rule: "108", subrule: nil}
-      ]
+      {
+        :ok,
+        [
+          %LibJudge.Rule{type: :subrule, category: "7", subcategory: "02", rule: "21", subrule: "j"},
+          %LibJudge.Rule{type: :rule, category: "7", subcategory: "02", rule: "108", subrule: nil}
+        ]
+      }
   """
-  @spec all_from_string(String.t()) :: [t] | {:error, String.t()}
+  @spec all_from_string(String.t()) :: {:ok, [t]} | {:error, String.t()}
   def all_from_string(str) when is_binary(str) do
     # what the fuck wizards
     clean_str = String.replace(str, "–", "-")
 
-    @rule_regex
-    |> Regex.scan(clean_str)
-    |> List.flatten()
-    |> Enum.map(&from_string/1)
+    rules =
+      @rule_regex
+      |> Regex.scan(clean_str)
+      |> List.flatten()
+      |> Stream.map(&from_string/1)
+      |> Stream.filter(fn
+        {:ok, _} -> true
+        _ -> false
+      end)
+      |> Enum.map(fn {:ok, x} -> x end)
+
+    {:ok, rules}
   end
 
   def all_from_string(_not_a_str) do
