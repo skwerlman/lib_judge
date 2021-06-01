@@ -29,7 +29,7 @@ defmodule LibJudge.Filter do
   @spec rule_starts_with(String.t()) :: filter
   def rule_starts_with(prefix) do
     fn
-      {:rule, {_type, rule, _body, _examples}} ->
+      {:rule, {_type, rule = %Rule{}, _body, _examples}} ->
         case Rule.to_string(rule) do
           {:ok, string} -> String.starts_with?(string, prefix)
           _ -> false
@@ -51,15 +51,18 @@ defmodule LibJudge.Filter do
   @spec body_contains(String.t()) :: filter
   def body_contains(text) do
     fn
-      {:rule, {_type, _rule, body, _examples}} -> String.contains?(body, text)
-      _ -> false
+      {:rule, {_type, _rule, body, _examples}} when is_binary(body) ->
+        String.contains?(body, text)
+
+      _ ->
+        false
     end
   end
 
   @spec has_examples() :: filter
   def has_examples do
     fn
-      {:rule, {_type, _rule, _body, [_at_least_one_example]}} -> true
+      {:rule, {_type, _rule, _body, [_at_least_one|_example]}} -> true
       _ -> false
     end
   end
@@ -67,7 +70,7 @@ defmodule LibJudge.Filter do
   @spec body_matches(Regex.t()) :: filter
   def body_matches(regex) do
     fn
-      {:rule, {_type, _rule, body, _examples}} -> Regex.match?(regex, body)
+      {:rule, {_type, _rule, body, _examples}} when is_binary(body) -> Regex.match?(regex, body)
       _ -> false
     end
   end
@@ -75,16 +78,26 @@ defmodule LibJudge.Filter do
   @spec rule_matches(Regex.t()) :: filter
   def rule_matches(regex) do
     fn
-      {:rule, {_type, rule, _body, _examples}} -> Regex.match?(regex, rule)
-      _ -> false
+      {:rule, {_type, rule, _body, _examples}} ->
+        try do
+          Regex.match?(regex, Rule.to_string!(rule))
+        rescue
+          _ -> fn _ -> false end
+        end
+
+      _ ->
+        false
     end
   end
 
   @spec example_matches(Regex.t()) :: filter
   def example_matches(regex) do
     fn
-      {:rule, {_type, _rule, _body, examples}} ->
-        Enum.reduce(examples, false, fn x, acc -> Regex.match?(regex, x) || acc end)
+      {:rule, {_type, _rule, _body, examples}} when is_list(examples) ->
+        Enum.reduce(examples, false, fn
+          x, acc when is_binary(x) -> Regex.match?(regex, x) || acc
+          _, acc -> acc
+        end)
 
       _ ->
         false
