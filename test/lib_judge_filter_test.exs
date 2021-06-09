@@ -84,10 +84,13 @@ defmodule LibJudgeFilterTest do
       filter = Filter.rule_is("100.1.")
       assert is_function(filter)
       assert :erlang.fun_info(filter)[:arity] == 1
+
       matches = Enum.filter(@tokens, filter)
       assert is_list(matches)
       assert length(matches) == 1
-      assert match?({:rule, {:rule, %LibJudge.Rule{type: :rule}, _, _}}, hd(matches))
+
+      match = hd(matches)
+      assert match?({:rule, {:rule, %LibJudge.Rule{type: :rule}, _, _}}, match)
     end
 
     property "only ever finds 0 or 1 matches",
@@ -97,6 +100,7 @@ defmodule LibJudgeFilterTest do
         filter = Filter.rule_is(rule_str)
         assert is_function(filter)
         assert :erlang.fun_info(filter)[:arity] == 1
+
         matches = Enum.filter(@tokens, filter)
         assert is_list(matches)
         assert Enum.empty?(matches) or length(matches) == 1
@@ -118,9 +122,11 @@ defmodule LibJudgeFilterTest do
                  list(term())
                ] do
           tokens = Enum.shuffle(@tokens ++ bad_data)
+
           filter = Filter.rule_is(rule_str)
           assert is_function(filter)
           assert :erlang.fun_info(filter)[:arity] == 1
+
           matches = Enum.filter(tokens, filter)
           assert is_list(matches)
           assert Enum.empty?(matches) or length(matches) == 1
