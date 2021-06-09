@@ -11,7 +11,7 @@ defmodule LibJudge.Filter do
 
   @type filter :: (Tokenizer.rule() -> boolean)
 
-  @spec rule_is(String.t()) :: (Tokenizer.rule() -> boolean)
+  @spec rule_is(String.t()) :: filter
   def rule_is(rule_str) do
     {:ok, rule} = Rule.from_string(rule_str)
 
