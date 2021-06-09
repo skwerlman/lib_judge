@@ -34,7 +34,8 @@
         excluded: [
           ~r"/_build/",
           ~r"/deps/",
-          ~r"/node_modules/"
+          ~r"/node_modules/",
+          ~r"/test/models/"
         ]
       },
       #
