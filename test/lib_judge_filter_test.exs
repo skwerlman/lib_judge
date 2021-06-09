@@ -47,7 +47,7 @@ defmodule LibJudgeFilterTest do
 
     property "handles bad data gracefully",
       detect_exceptions: true,
-      numtests: @runs_per_test do
+      numtests: floor(@runs_per_test / 10) do
       trap_exit(
         forall [{rule_str, type}, bad_data] <- [
                  oneof([any_rule_str(), tuple([term(), exactly(:bad)])]),
