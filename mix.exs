@@ -10,6 +10,7 @@ defmodule ArchiveChallenges.MixProject do
       app: :lib_judge,
       version: @version,
       elixir: "~> 1.11",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: dialyzer(),
@@ -68,4 +69,8 @@ defmodule ArchiveChallenges.MixProject do
       ]
     ]
   end
+
+  # include models for property tests
+  defp elixirc_paths(:test), do: ["lib", "test/models"]
+  defp elixirc_paths(_), do: ["lib"]
 end

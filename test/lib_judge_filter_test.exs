@@ -1,6 +1,7 @@
 defmodule LibJudgeFilterTest do
   use ExUnit.Case, async: true
   use PropCheck
+  import LibJudgeTest.Models.Rules
   alias LibJudge.Filter
   doctest LibJudge.Filter
 
@@ -9,75 +10,6 @@ defmodule LibJudgeFilterTest do
   # load rules from cache and tokenize before testing
   @raw_text LibJudge.get!("20210224", false)
   @tokens LibJudge.tokenize(@raw_text)
-
-  defp subrule_letter do
-    let char <- choose(0x61, 0x7A) do
-      to_string([char])
-    end
-  end
-
-  defp cat_str do
-    let cat <- integer(1, 9) do
-      {to_string(cat) <> ".", :category}
-    end
-  end
-
-  defp subcat_str do
-    let [
-      cat <- integer(1, 9),
-      sc1 <- integer(0, 9),
-      sc2 <- integer(0, 9),
-      ending <- oneof(["", "."])
-    ] do
-      {to_string(cat) <>
-         to_string(sc1) <>
-         to_string(sc2) <>
-         ending, :subcategory}
-    end
-  end
-
-  defp rule_str do
-    let [
-      cat <- integer(1, 9),
-      sc1 <- integer(0, 9),
-      sc2 <- integer(0, 9),
-      rule <- integer(1, 999),
-      ending <- oneof(["", "."])
-    ] do
-      {to_string(cat) <>
-         to_string(sc1) <>
-         to_string(sc2) <>
-         "." <>
-         to_string(rule) <>
-         ending, :rule}
-    end
-  end
-
-  defp subrule_str do
-    let [
-      cat <- integer(1, 9),
-      sc1 <- integer(0, 9),
-      sc2 <- integer(0, 9),
-      rule <- integer(1, 999),
-      subrule <- subrule_letter()
-    ] do
-      {to_string(cat) <>
-         to_string(sc1) <>
-         to_string(sc2) <>
-         "." <>
-         to_string(rule) <>
-         subrule, :subrule}
-    end
-  end
-
-  defp any_rule_str do
-    oneof([
-      cat_str(),
-      subcat_str(),
-      rule_str(),
-      subrule_str()
-    ])
-  end
 
   describe "rule_is filter" do
     test "finds exactly 1 match when it succeeds" do
