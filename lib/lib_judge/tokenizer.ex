@@ -22,6 +22,13 @@ defmodule LibJudge.Tokenizer do
           | contents
           | rule
           | glossary
+  @type token_type ::
+          :title
+          | :effective_date
+          | :intro
+          | :contents
+          | :rule
+          | :glossary
 
   @spec tokenize(binary) :: [token]
   # ignore BOMs
