@@ -29,7 +29,8 @@ defmodule LibJudge.Versions do
   Downloaded rules are cached to `prefix` in addition
   to being returned.
   """
-  @spec get!(version :: String.t() | :current, boolean, prefix :: String.t()) :: String.t() | no_return
+  @spec get!(version :: String.t() | :current, boolean, prefix :: String.t()) ::
+          String.t() | no_return
   def get!(ver, allow_online \\ true, prefix \\ "priv/data/")
 
   def get!(:current, allow_online, prefix) do
