@@ -27,13 +27,13 @@ defmodule ArchiveChallenges.MixProject do
 
   defp deps do
     [
-      {:finch, "~> 0.7"},
-      {:floki, "~> 0.30"},
+      {:finch, "~> 0.8"},
+      {:floki, "~> 0.31"},
       {:propcheck, "~> 1.4", only: :test},
       {:stream_data, "~> 0.5", only: :test},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.25", only: :dev, runtime: false}
     ]
   end
 
