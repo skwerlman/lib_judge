@@ -8,13 +8,17 @@ defmodule ArchiveChallenges.MixProject do
   def project do
     [
       app: :lib_judge,
+      description: "Programmatic access to the MTG Comprehensive Rules",
       version: @version,
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: dialyzer(),
-      docs: docs()
+      docs: docs(),
+      package: package(),
+      source_url: @repo,
+      homepage_url: @repo
     ]
   end
 
@@ -44,6 +48,16 @@ defmodule ArchiveChallenges.MixProject do
       extras: [
         "README.md": [title: "README"]
       ]
+    ]
+  end
+
+  defp package do
+    [
+      files: ~w(lib .formatter.exs mix.exs README.md LICENSE),
+      licenses: ["Apache-2.0"],
+      links: %{
+        "GitHub" => @repo
+      }
     ]
   end
 

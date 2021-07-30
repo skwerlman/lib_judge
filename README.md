@@ -11,7 +11,7 @@ Add `lib_judge` to your mixfile:
 ```elixir
 defp deps do
 [
-    {:lib_judge, github: "skwerlman/lib_judge"}
+    {:lib_judge, "~> 0.4.0"}
 ]
 end
 ```
@@ -43,8 +43,7 @@ filtered_rules = Enum.filter(tokens, filter)
 
 ## Documentation
 
-For now, run `mix docs` and browse the generated docs locally.
-Proper docs will be available after this is published on Hex.
+The full documentation is available [here](https://hexdocs.pm/lib_judge/readme.html).
 
 ## Limitations
 
