@@ -25,39 +25,42 @@ defmodule LibJudge.Versions do
 
   If `allow_online` is `false`, any action that would
   go over the internet raises an error instead.
-  """
-  @spec get!(version :: String.t() | :current, boolean) :: String.t() | no_return
-  def get!(ver, allow_online \\ true)
 
-  def get!(:current, allow_online) do
-    get_online(:current, allow_online)
+  Downloaded rules are cached to `prefix` in addition
+  to being returned.
+  """
+  @spec get!(version :: String.t() | :current, boolean, prefix :: String.t()) :: String.t() | no_return
+  def get!(ver, allow_online \\ true, prefix \\ "priv/data/")
+
+  def get!(:current, allow_online, prefix) do
+    get_online(:current, allow_online, prefix)
   end
 
-  def get!(ver, allow_online) do
-    fname = ["priv/data/MagicCompRules ", ver, ".txt"]
+  def get!(ver, allow_online, prefix) do
+    fname = [prefix, "MagicCompRules ", ver, ".txt"]
 
     if File.exists?(fname) do
       Logger.info("Reading locally cached rules version #{inspect(ver)}")
       File.read!(fname)
     else
-      get_online(ver, allow_online)
+      get_online(ver, allow_online, prefix)
     end
   end
 
-  defp get_online(:current, allow_online) when allow_online == false do
+  defp get_online(:current, allow_online, _prefix) when allow_online == false do
     raise "cannot get current version without going online!"
   end
 
-  defp get_online(ver, allow_online) when allow_online == false do
-    raise "cannot find \"priv/data/MagicCompRules #{ver}.txt\" and not allowed to look online!"
+  defp get_online(ver, allow_online, prefix) when allow_online == false do
+    raise "cannot find \"#{prefix}MagicCompRules #{ver}.txt\" and not allowed to look online!"
   end
 
-  defp get_online(:current, allow_online) when allow_online == true do
+  defp get_online(:current, allow_online, prefix) when allow_online == true do
     ver = get_current_ver()
-    get!(ver, allow_online)
+    get!(ver, allow_online, prefix)
   end
 
-  defp get_online(ver, allow_online) when allow_online == true do
+  defp get_online(ver, allow_online, prefix) when allow_online == true do
     Logger.info("Fetching rules version #{inspect(ver)}...")
     txt_url = get_url_from_version(ver)
 
@@ -73,8 +76,8 @@ defmodule LibJudge.Versions do
 
     case resp do
       {:ok, %{status: 200, body: body}} ->
-        _ = File.write(["priv/data/MagicCompRules ", txt_ver, ".txt"], body)
-        get!(txt_ver, false)
+        _ = File.write([prefix, "MagicCompRules ", txt_ver, ".txt"], body)
+        get!(txt_ver, false, prefix)
 
       {:ok, %{status: status}} ->
         raise "couldn't get version #{txt_ver}: HTTP #{status}"

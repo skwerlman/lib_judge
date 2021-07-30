@@ -6,10 +6,10 @@ defmodule LibJudge do
   alias LibJudge.Tokenizer
   alias LibJudge.Versions
 
-  @spec get!(:current | binary, boolean) :: binary
-  defdelegate get!(version, allow_online \\ true), to: Versions
+  @spec get!(:current | String.t(), boolean, String.t()) :: String.t()
+  defdelegate get!(version, allow_online \\ true, prefix \\ "priv/data/"), to: Versions
 
-  @spec tokenize(binary) :: [Tokenizer.token()]
+  @spec tokenize(String.t()) :: [Tokenizer.token()]
   defdelegate tokenize(text), to: Tokenizer
 
   @doc false
