@@ -3,6 +3,7 @@ defmodule LibJudge.Rule do
   Defines the `Rule` structure and provides methods for generating
   and working with them
   """
+  import LibJudge.Tokenizer.Guards
   alias LibJudge.Rule.InvalidPartError
 
   @type rule_type :: :category | :subcategory | :rule | :subrule
@@ -166,7 +167,7 @@ defmodule LibJudge.Rule do
   end
 
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), ".">>)
-       when cat in 48..57 do
+       when cat in 48..57 and is_rule_1(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -180,7 +181,7 @@ defmodule LibJudge.Rule do
   end
 
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), ".">>)
-       when cat in 48..57 do
+       when cat in 48..57 and is_rule_2(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -194,7 +195,7 @@ defmodule LibJudge.Rule do
   end
 
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), ".">>)
-       when cat in 48..57 do
+       when cat in 48..57 and is_rule_3(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -208,7 +209,7 @@ defmodule LibJudge.Rule do
   end
 
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), subrule::utf8>>)
-       when cat in 48..57 and subrule in 97..122 do
+       when cat in 48..57 and subrule in 97..122 and is_rule_1(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -224,7 +225,7 @@ defmodule LibJudge.Rule do
   end
 
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), subrule::utf8>>)
-       when cat in 48..57 and subrule in 97..122 do
+       when cat in 48..57 and subrule in 97..122 and is_rule_2(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -240,7 +241,7 @@ defmodule LibJudge.Rule do
   end
 
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), subrule::utf8>>)
-       when cat in 48..57 and subrule in 97..122 do
+       when cat in 48..57 and subrule in 97..122 and is_rule_3(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -258,7 +259,7 @@ defmodule LibJudge.Rule do
   # these are a hack to make not-strictly-correct rule ids like
   # '205.1' (should be '205.1.') work to make this more friendly
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1)>>)
-       when cat in 48..57 do
+       when cat in 48..57 and is_rule_1(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -272,7 +273,7 @@ defmodule LibJudge.Rule do
   end
 
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2)>>)
-       when cat in 48..57 do
+       when cat in 48..57 and is_rule_2(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -286,7 +287,7 @@ defmodule LibJudge.Rule do
   end
 
   defp split!(<<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3)>>)
-       when cat in 48..57 do
+       when cat in 48..57 and is_rule_3(rule) do
     validate_cat!(<<cat>>)
     validate_subcat!(subcat)
     validate_rule!(rule)
@@ -296,6 +297,62 @@ defmodule LibJudge.Rule do
       subcategory: subcat,
       rule: rule,
       type: :rule
+    ]
+  end
+
+  # these are a hack to make wotc's typo'd rule ids like
+  # '119.1d.' (should be '119.1d') work to make this more friendly
+  defp split!(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), subrule::utf8, ".">>
+       )
+       when cat in 48..57 and subrule in 97..122 and is_rule_1(rule) do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
+    validate_subrule!(<<subrule>>)
+
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      subrule: <<subrule>>,
+      type: :subrule
+    ]
+  end
+
+  defp split!(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), subrule::utf8, ".">>
+       )
+       when cat in 48..57 and subrule in 97..122 and is_rule_2(rule) do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
+    validate_subrule!(<<subrule>>)
+
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      subrule: <<subrule>>,
+      type: :subrule
+    ]
+  end
+
+  defp split!(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), subrule::utf8, ".">>
+       )
+       when cat in 48..57 and subrule in 97..122 and is_rule_3(rule) do
+    validate_cat!(<<cat>>)
+    validate_subcat!(subcat)
+    validate_rule!(rule)
+    validate_subrule!(<<subrule>>)
+
+    [
+      category: <<cat>>,
+      subcategory: subcat,
+      rule: rule,
+      subrule: <<subrule>>,
+      type: :subrule
     ]
   end
 

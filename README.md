@@ -11,7 +11,7 @@ Add `lib_judge` to your mixfile:
 ```elixir
 defp deps do
 [
-    {:lib_judge, "~> 0.4.0"}
+    {:lib_judge, "~> 0.4"}
 ]
 end
 ```

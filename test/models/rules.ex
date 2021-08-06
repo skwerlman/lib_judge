@@ -70,6 +70,23 @@ defmodule LibJudgeTest.Models.Rules do
     end
   end
 
+  def always_subrule do
+    let [
+      cat <- integer(1, 9),
+      subcat <- integer(0, 99),
+      rule <- integer(1, 999),
+      subrule <- subrule_letter()
+    ] do
+      %LibJudge.Rule{
+        type: :subrule,
+        category: to_string(cat),
+        subcategory: subcat |> to_string() |> String.pad_leading(2, "0"),
+        rule: to_string(rule),
+        subrule: subrule
+      }
+    end
+  end
+
   def long_subrule do
     let [
       cat <- integer(1, 9),

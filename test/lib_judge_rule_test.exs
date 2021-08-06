@@ -17,6 +17,16 @@ defmodule LibJudgeRuleTest do
       end
     end
 
+    property "accepts certain malformed rules (like WOTC typos)",
+      detect_exceptions: true,
+      numtests: @runs_per_test do
+      forall rule_struct <- always_subrule() do
+        str = LibJudge.Rule.to_string!(rule_struct) <> "."
+        {:ok, struct} = LibJudge.Rule.from_string(str)
+        equals(rule_struct, struct)
+      end
+    end
+
     property "rejects invalid subrules in rule structs",
       detect_exceptions: true,
       numtests: @runs_per_test do
