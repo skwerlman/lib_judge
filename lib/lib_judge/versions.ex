@@ -6,9 +6,9 @@ defmodule LibJudge.Versions do
 
   @finch_client LibJudge.HTTPClient
 
-  @wizards_rules_page "https://magic.wizards.com/en/game-info/gameplay/rules-and-formats/rules"
+  @wizards_rules_page "https://magic.wizards.com/en/rules"
 
-  @version_regex ~r/%20(\d{8})\./
+  @version_regex ~r/(?:%20| )(\d{8})\./
 
   @doc """
   Gets the Magic: The Gathering Comprehensive Rules for the given version.

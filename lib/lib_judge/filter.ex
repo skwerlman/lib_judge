@@ -144,4 +144,11 @@ defmodule LibJudge.Filter do
       &both/2
     )
   end
+
+  @spec except(filter) :: filter
+  def except(filter) do
+    fn x ->
+      not filter.(x)
+    end
+  end
 end

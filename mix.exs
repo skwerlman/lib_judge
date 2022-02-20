@@ -2,7 +2,7 @@ defmodule ArchiveChallenges.MixProject do
   @moduledoc false
   use Mix.Project
 
-  @version "0.4.1"
+  @version "0.4.2"
   @repo "https://github.com/skwerlman/lib_judge"
 
   def project do
@@ -31,13 +31,13 @@ defmodule ArchiveChallenges.MixProject do
 
   defp deps do
     [
-      {:finch, "~> 0.8"},
-      {:floki, "~> 0.31"},
+      {:finch, "~> 0.10"},
+      {:floki, "~> 0.32"},
       {:propcheck, "~> 1.4", only: :test},
       {:stream_data, "~> 0.5", only: :test},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.25", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 
