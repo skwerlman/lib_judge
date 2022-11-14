@@ -64,25 +64,29 @@ defmodule LibJudge.Versions do
 
   defp get_online(ver, allow_online, prefix) when allow_online == true do
     Logger.info("Fetching rules version #{inspect(ver)}...")
-    txt_url = get_url_from_version(ver)
+    urls = get_urls_from_version(ver)
 
-    txt_ver =
-      @version_regex
-      |> Regex.run(txt_url)
-      |> Enum.at(1)
+    vers = Enum.map(urls, fn x -> @version_regex |> Regex.run(x) |> Enum.at(1) end)
 
+    download(urls, vers, prefix)
+  end
+
+  defp download([url | urls], [ver | vers], prefix) do
     resp =
       :get
-      |> Finch.build(txt_url)
+      |> Finch.build(url)
       |> Finch.request(@finch_client)
 
     case resp do
       {:ok, %{status: 200, body: body}} ->
-        _ = File.write([prefix, "MagicCompRules ", txt_ver, ".txt"], body)
-        get!(txt_ver, false, prefix)
+        _ = File.write([prefix, "MagicCompRules ", ver, ".txt"], body)
+        get!(ver, false, prefix)
 
       {:ok, %{status: status}} ->
-        raise "couldn't get version #{txt_ver}: HTTP #{status}"
+        case urls do
+          [_] -> download(urls, vers, prefix)
+          [] -> raise "couldn't get version #{ver}: HTTP #{status}"
+        end
 
       {:error, reason} ->
         raise reason
@@ -118,8 +122,12 @@ defmodule LibJudge.Versions do
     |> Enum.at(1)
   end
 
-  defp get_url_from_version(version) do
+  defp get_urls_from_version(version) do
     year = String.slice(version, 0..3)
-    "https://media.wizards.com/#{year}/downloads/MagicCompRules%20#{version}.txt"
+
+    [
+      "https://media.wizards.com/#{year}/downloads/Comprehensive%20Rules%20#{version}.txt",
+      "https://media.wizards.com/#{year}/downloads/MagicCompRules%20#{version}.txt"
+    ]
   end
 end
