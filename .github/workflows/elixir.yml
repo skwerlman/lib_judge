@@ -12,7 +12,11 @@ jobs:
       matrix:
         otp: ["25.1", "24.3", "23.3"]
         elixir: ["1.14.2", "1.13.4", "1.12.3", "1.11.4"]
-    if: ${{ !(otp == "25.1" && ( elixir == "1.12.3" || elixir != "1.11.4")) }}
+        exclude:
+          - otp: "25.1"
+            elixir: "1.12.3"
+          - otp: "25.1"
+            elixir: "1.11.4"
 
     runs-on: ubuntu-latest
 
@@ -100,7 +104,11 @@ jobs:
       matrix:
         otp: ["25.1", "24.3", "23.3"]
         elixir: ["1.14.2", "1.13.4", "1.12.3", "1.11.4"]
-    if: ${{ !(otp == "25.1" && ( elixir == "1.12.3" || elixir != "1.11.4")) }}
+        exclude:
+          - otp: "25.1"
+            elixir: "1.12.3"
+          - otp: "25.1"
+            elixir: "1.11.4"
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -135,7 +143,11 @@ jobs:
       matrix:
         otp: ["25.1", "24.3", "23.3"]
         elixir: ["1.14.2", "1.13.4", "1.12.3", "1.11.4"]
-    if: ${{ !(otp == "25.1" && ( elixir == "1.12.3" || elixir != "1.11.4")) }}
+        exclude:
+          - otp: "25.1"
+            elixir: "1.12.3"
+          - otp: "25.1"
+            elixir: "1.11.4"
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -178,7 +190,11 @@ jobs:
       matrix:
         otp: ["25.1", "24.3", "23.3"]
         elixir: ["1.14.2", "1.13.4", "1.12.3", "1.11.4"]
-    if: ${{ !(otp == "25.1" && ( elixir == "1.12.3" || elixir != "1.11.4")) }}
+        exclude:
+          - otp: "25.1"
+            elixir: "1.12.3"
+          - otp: "25.1"
+            elixir: "1.11.4"
     runs-on: ubuntu-latest
     needs: build
     steps:
