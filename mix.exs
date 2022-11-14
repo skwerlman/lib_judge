@@ -77,7 +77,6 @@ defmodule ArchiveChallenges.MixProject do
       flags: [
         :unmatched_returns,
         :error_handling,
-        :race_conditions,
         :no_opaque,
         :underspecs
       ]
