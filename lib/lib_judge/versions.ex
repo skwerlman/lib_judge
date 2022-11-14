@@ -17,7 +17,8 @@ defmodule LibJudge.Versions do
   this attempts to download them from Wizards.
 
   Versions are either a date written as "YYYYMMDD",
-  or the atom `:current`.
+  or the atom `:current`. Note that the version
+  does not necessarily match the effective date.
 
   If the version is `:current`, the current version
   is obtained from Wizards, and the latest rules are
