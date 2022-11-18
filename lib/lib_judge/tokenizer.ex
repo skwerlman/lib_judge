@@ -32,12 +32,26 @@ defmodule LibJudge.Tokenizer do
           | :glossary
 
   @spec tokenize(binary) :: [token]
-  # ignore BOMs
-  def tokenize(<<"\uFEFF", rest::binary>>), do: tokenize(rest)
+  # Normalize non-UTF8 unicodes to UTF8, stripping BOM
+  def tokenize(<<0xFE, 0xFF, rest::binary>>),
+    do: rest |> :unicode.characters_to_binary({:utf16, :big}) |> tokenize()
+
+  def tokenize(<<0xFF, 0xFE, rest::binary>>),
+    do: rest |> :unicode.characters_to_binary({:utf16, :little}) |> tokenize()
+
+  def tokenize(<<0x00, 0x00, 0xFE, 0xFF, rest::binary>>),
+    do: rest |> :unicode.characters_to_binary({:utf32, :big}) |> tokenize()
+
+  def tokenize(<<0xFF, 0xFE, 0x00, 0x00, rest::binary>>),
+    do: rest |> :unicode.characters_to_binary({:utf32, :little}) |> tokenize()
+
+  # ignore UTF-8 BOMs
+  def tokenize(<<0xEF, 0xBB, 0xBF, rest::binary>>), do: tokenize(rest)
 
   def tokenize(string) when is_binary(string) do
     string
     |> String.replace("\r\n", "\n")
+    |> String.replace("\r", "\n")
     |> tokenize([])
     |> Enum.reverse()
   end

@@ -24,4 +24,17 @@ System.cmd(
   env: %{}
 )
 
+System.cmd(
+  "wget",
+  [
+    "-t",
+    "10",
+    "-nc",
+    "-O",
+    "priv/data/MagicCompRules 20221118.txt",
+    "https://media.wizards.com/2022/downloads/Comprehensive%20Rules%2020221118.txt"
+  ],
+  env: %{}
+)
+
 ExUnit.start(capture_log: true)
