@@ -163,6 +163,66 @@ defmodule LibJudge.Tokenizer do
 
   # WOTC I AM GOING TO DO ACTIONABLE THREATS TO YOU
 
+  # bugged rules like: 100.1 <body>
+  defp tokenize(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), " ",
+           rest_with_body::binary>>,
+         tokens
+       )
+       when cat in 48..57 and is_rule_1(rule) do
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
+  end
+
+  # bugged rules like: 100.10 <body>
+  defp tokenize(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), " ",
+           rest_with_body::binary>>,
+         tokens
+       )
+       when cat in 48..57 and is_rule_2(rule) do
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
+  end
+
+  # bugged rules like: 100.100 <body>
+  defp tokenize(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), " ",
+           rest_with_body::binary>>,
+         tokens
+       )
+       when cat in 48..57 and is_rule_3(rule) do
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
+  end
+
+  # bugged rules like: 100.1.<body>
+  defp tokenize(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), ".",
+           rest_with_body::binary>>,
+         tokens
+       )
+       when cat in 48..57 and is_rule_1(rule) do
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
+  end
+
+  # bugged rules like: 100.10.<body>
+  defp tokenize(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(2), ".",
+           rest_with_body::binary>>,
+         tokens
+       )
+       when cat in 48..57 and is_rule_2(rule) do
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
+  end
+
+  # bugged rules like: 100.100.<body>
+  defp tokenize(
+         <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(3), ".",
+           rest_with_body::binary>>,
+         tokens
+       )
+       when cat in 48..57 and is_rule_3(rule) do
+    rule_tokenize(cat, subcat, rule, rest_with_body, tokens)
+  end
+
   # bugged rules like: 100.1a. <body>
   defp tokenize(
          <<cat::utf8, subcat::binary-size(2), ".", rule::binary-size(1), subrule::utf8, ". ",
