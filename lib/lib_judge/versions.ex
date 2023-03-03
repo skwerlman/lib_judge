@@ -84,8 +84,8 @@ defmodule LibJudge.Versions do
 
       {:ok, %{status: status}} ->
         case urls do
-          [_] -> download(urls, vers, prefix)
           [] -> raise "couldn't get version #{ver}: HTTP #{status}"
+          _ -> download(urls, vers, prefix)
         end
 
       {:error, reason} ->
@@ -127,6 +127,7 @@ defmodule LibJudge.Versions do
 
     [
       "https://media.wizards.com/#{year}/downloads/Comprehensive%20Rules%20#{version}.txt",
+      "https://media.wizards.com/#{year}/downloads/MagicComp%20Rules%20#{version}.txt",
       "https://media.wizards.com/#{year}/downloads/MagicCompRules%20#{version}.txt"
     ]
   end
