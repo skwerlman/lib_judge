@@ -34,9 +34,9 @@ defmodule ArchiveChallenges.MixProject do
       {:finch, "~> 0.10"},
       {:floki, "~> 0.32"},
       {:propcheck, "~> 1.4", only: :test},
-      {:stream_data, "~> 0.5", only: :test},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
+      {:stream_data, "~> 0.6", only: :test},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
