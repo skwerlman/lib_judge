@@ -8,7 +8,7 @@ defmodule LibJudge.Versions do
 
   @wizards_rules_page "https://magic.wizards.com/en/rules"
 
-  @version_regex ~r/(?:%20| )(\d{8})\./
+  @version_regex ~r/(?:%20| |MagicCompRules)(\d{8})\./
 
   @doc """
   Gets the Magic: The Gathering Comprehensive Rules for the given version.
@@ -59,6 +59,7 @@ defmodule LibJudge.Versions do
 
   defp get_online(:current, allow_online, prefix) when allow_online == true do
     ver = get_current_ver()
+
     get!(ver, allow_online, prefix)
   end
 
@@ -66,7 +67,23 @@ defmodule LibJudge.Versions do
     Logger.info("Fetching rules version #{inspect(ver)}...")
     urls = get_urls_from_version(ver)
 
-    vers = Enum.map(urls, fn x -> @version_regex |> Regex.run(x) |> Enum.at(1) end)
+    vers =
+      urls
+      |> Enum.map(fn x ->
+        case Regex.run(@version_regex, x) do
+          nil ->
+            nil
+
+          matches ->
+            Enum.at(matches, 1)
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    if vers == [] do
+      Logger.error(["we tried the following urls:\n", inspect(urls, pretty: true)])
+      raise "unable to extract version info from any url! this is a bug!"
+    end
 
     download(urls, vers, prefix)
   end
@@ -117,9 +134,14 @@ defmodule LibJudge.Versions do
           raise reason
       end
 
-    @version_regex
-    |> Regex.run(url)
-    |> Enum.at(1)
+    case Regex.run(@version_regex, url) do
+      nil ->
+        Logger.error("no match for #{url}")
+        raise "unable to extract version info from the url! this is a bug!"
+
+      matches ->
+        Enum.at(matches, 1)
+    end
   end
 
   defp get_urls_from_version(version) do
@@ -128,7 +150,8 @@ defmodule LibJudge.Versions do
     [
       "https://media.wizards.com/#{year}/downloads/Comprehensive%20Rules%20#{version}.txt",
       "https://media.wizards.com/#{year}/downloads/MagicComp%20Rules%20#{version}.txt",
-      "https://media.wizards.com/#{year}/downloads/MagicCompRules%20#{version}.txt"
+      "https://media.wizards.com/#{year}/downloads/MagicCompRules%20#{version}.txt",
+      "https://media.wizards.com/#{year}/downloads/MagicCompRules#{version}.txt"
     ]
   end
 end
